@@ -1,0 +1,64 @@
+{% extends 'generic/object_list.html' %}
+{% load buttons %}
+{% load helpers %}
+
+{% block content %}
+  <div class="row mb-3">
+    <div class="col col-md-12">
+      <div class="card">
+        <h5 class="card-header">LCA Data</h5>
+        <div class="card-body table-responsive">
+          {% include 'htmx/table.html' %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row mb-3">
+    <div class="col col-md-6">
+      <div class="card">
+        <h5 class="card-header">Device Types</h5>
+        <div class="card-body table-responsive">
+          <table class="table table-hover table-headings">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Manufacturer</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for device_type in device_types %}
+                <tr>
+                  <td>{{ device_type.model }}</td>
+                  <td>{{ device_type.manufacturer }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col col-md-6">
+      <div class="card">
+        <h5 class="card-header">Module Types</h5>
+        <div class="card-body table-responsive">
+          <table class="table table-hover table-headings">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Manufacturer</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for module_type in module_types %}
+                <tr>
+                  <td>{{ module_type.model }}</td>
+                  <td>{{ module_type.manufacturer }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
