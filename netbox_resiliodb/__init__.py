@@ -7,6 +7,5 @@ class NetBoxResilioDBConfig(PluginConfig):
     description = 'LCA footprint data sync from ResilioDB'
     version = '0.1'
     base_url = 'resiliodb'
-    menu_items = menu_items
 
 config = NetBoxResilioDBConfig
