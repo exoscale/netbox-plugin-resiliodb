@@ -1,4 +1,3 @@
-from django.contrib.postgres.fields import ArrayField, JSONField
 from django.db import models
 from django.urls import reverse
 
@@ -22,9 +21,9 @@ class LCAData(NetBoxModel):
         null=True
     )
     lca_type = models.CharField(max_length=100)
-    lca_spec = JSONField(blank=True, null=True)
+    lca_spec = models.JSONField(blank=True, null=True)
     lca_pool = models.CharField(max_length=100, blank=True)
-    lca_footprint = JSONField(blank=True, null=True)
+    lca_footprint = models.JSONField(blank=True, null=True)
 
     class Meta:
         verbose_name = "LCA Data"
@@ -35,4 +34,3 @@ class LCAData(NetBoxModel):
 
     def get_absolute_url(self):
         return reverse('plugins:netbox_resiliodb:lcadata', args=[self.pk])
-

@@ -4,3 +4,4 @@ from . import views
 
 app_name = 'netbox_resiliodb'
 
+urlpatterns = []
