@@ -115,6 +115,27 @@ class LCAParamsEditView(generic.ObjectEditView):
                 instance.content_type_id = content_type_id
                 instance.object_id = object_id
 
+                # Get the parent object
+                parent = instance.content_object
+                if parent:
+                    if hasattr(parent, 'device_role'):  # It's a Device
+                        # Look for a matching LCA type for the device role
+                        mapping = models.DeviceRoleLCATypeMapping.objects.filter(
+                            device_role=parent.device_role
+                        ).first()
+                        if mapping and mapping.lca_type.default_payload:
+                            instance.parameters = mapping.lca_type.default_payload
+                    
+                    elif hasattr(parent, 'device_set'):  # It's a DeviceType
+                        # Find first device of this type that has a role with LCA mapping
+                        device = parent.device_set.first()
+                        if device and device.device_role:
+                            mapping = models.DeviceRoleLCATypeMapping.objects.filter(
+                                device_role=device.device_role
+                            ).first()
+                            if mapping and mapping.lca_type.default_payload:
+                                instance.parameters = mapping.lca_type.default_payload
+
         return instance
 
     def get_return_url(self, request, obj=None):
