@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from netbox.api.serializers import NetBoxModelSerializer, WritableNestedSerializer
-from dcim.api.serializers import NestedDeviceRoleSerializer, NestedSiteSerializer, NestedRegionSerializer
+from dcim.api.nested_serializers import NestedDeviceRoleSerializer, NestedSiteSerializer, NestedRegionSerializer
 from .. import models
 
 class LCATypeSerializer(NetBoxModelSerializer):
@@ -60,5 +60,5 @@ class PluginSettingsSerializer(NetBoxModelSerializer):
 
     class Meta:
         model = models.PluginSettings
-        fields = ('id', 'url', 'api_url', 'api_key', 'api_version', 'default_usage_period_hours', 
+        fields = ('id', 'url', 'api_url', 'api_key', 'api_version', 'default_usage_period_hours',
                  'default_power_watts', 'resync_on_api_version_change', 'created', 'last_updated')
