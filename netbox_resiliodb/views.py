@@ -118,13 +118,18 @@ class LCAParamsEditView(generic.ObjectEditView):
                 # Get the parent object
                 parent = instance.content_object
                 if parent:
+                    logging.debug(f"Parent object: {parent}, type: {type(parent)}")
+                    logging.debug(f"Has device_role attr: {hasattr(parent, 'device_role')}")
                     if hasattr(parent, 'device_role'):  # It's a Device
+                        logging.debug(f"Device role: {parent.device_role}")
                         # Look for a matching LCA type for the device role
                         mapping = models.DeviceRoleLCATypeMapping.objects.filter(
                             device_role=parent.device_role
                         ).first()
+                        logging.debug(f"Found mapping: {mapping}")
                         if mapping and mapping.lca_type.default_payload:
                             instance.parameters = mapping.lca_type.default_payload
+                            logging.debug(f"Set parameters from mapping: {instance.parameters}")
 
                     elif hasattr(parent, 'device_set'):  # It's a DeviceType
                         # Find first device of this type that has a role with LCA mapping
