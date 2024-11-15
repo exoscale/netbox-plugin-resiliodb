@@ -42,4 +42,12 @@ urlpatterns = [
     path('settings/<int:pk>/edit/', views.PluginSettingsEditView.as_view(), name='pluginsettings_edit'),
     path('settings/<int:pk>/delete/', views.PluginSettingsDeleteView.as_view(), name='pluginsettings_delete'),
     path('settings/<int:pk>/changelog/', ObjectChangeLogView.as_view(), name='pluginsettings_changelog', kwargs={'model': models.PluginSettings}),
+
+    # LCA Parameters
+    path('lca-params/', views.LCAParamsView.as_view(), name='lcaparams_list'),
+    path('lca-params/add/', views.LCAParamsEditView.as_view(), name='lcaparams_add'),
+    path('lca-params/<int:pk>/', views.LCAParamsView.as_view(), name='lcaparams'),
+    path('lca-params/<int:pk>/edit/', views.LCAParamsEditView.as_view(), name='lcaparams_edit'),
+    path('lca-params/<int:pk>/delete/', views.LCAParamsDeleteView.as_view(), name='lcaparams_delete'),
+    path('lca-params/<int:pk>/changelog/', ObjectChangeLogView.as_view(), name='lcaparams_changelog', kwargs={'model': models.LCAParams}),
 ]

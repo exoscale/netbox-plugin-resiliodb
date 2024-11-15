@@ -52,3 +52,11 @@ class PluginSettingsForm(NetBoxModelForm):
         model = PluginSettings
         fields = ['api_url', 'api_key', 'api_version', 'default_usage_period_hours',
                  'default_power_watts', 'resync_on_api_version_change']
+
+class LCAParamsForm(NetBoxModelForm):
+    class Meta:
+        model = LCAParams
+        fields = ['parameters']
+        widgets = {
+            'parameters': forms.Textarea,
+        }

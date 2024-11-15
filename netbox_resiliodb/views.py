@@ -96,3 +96,29 @@ class PluginSettingsDeleteView(generic.ObjectDeleteView):
     def get(self, request, *args, **kwargs):
         # Prevent access to delete view
         return redirect('plugins:netbox_resiliodb:pluginsettings', pk=1)
+
+class LCAParamsView(generic.ObjectView):
+    queryset = models.LCAParams.objects.all()
+
+class LCAParamsEditView(generic.ObjectEditView):
+    queryset = models.LCAParams.objects.all()
+    form = forms.LCAParamsForm
+    template_name = 'netbox_resiliodb/lcaparams_edit.html'
+
+    def alter_object(self, instance, request, args, kwargs):
+        if not instance.pk:
+            # Assign the parent object based on URL kwargs
+            content_type_id = request.GET.get('content_type')
+            object_id = request.GET.get('object_id')
+            
+            if content_type_id and object_id:
+                instance.content_type_id = content_type_id
+                instance.object_id = object_id
+
+        return instance
+
+    def get_return_url(self, request, obj=None):
+        return request.GET.get('return_url') or super().get_return_url(request, obj)
+
+class LCAParamsDeleteView(generic.ObjectDeleteView):
+    queryset = models.LCAParams.objects.all()
