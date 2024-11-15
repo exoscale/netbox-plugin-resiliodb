@@ -1,3 +1,4 @@
+import logging
 from netbox.views import generic
 from . import models, tables, forms
 
