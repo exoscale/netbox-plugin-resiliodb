@@ -1,0 +1,1106 @@
+Below is the complete export of a full netbox plugin to use as reference.
+The plugins add attachment supports to various netbox models.
+
+.
+├── __init__.py
+├── api
+│   ├── __init__.py
+│   ├── serializers.py
+│   ├── urls.py
+│   └── views.py
+├── export.py
+├── exported_code.txt
+├── filtersets.py
+├── forms.py
+├── migrations
+│   ├── 0001_initial.py
+│   ├── 0002_alter_netboxattachment_options_and_more.py
+│   ├── 0003_alter_netboxattachment_name.py
+│   ├── 0004_netboxattachment_size_and_more.py
+│   ├── 0005_netboxattachment_description.py
+│   ├── 0006_rename_content_type_netboxattachment_object_type.py
+│   ├── 0007_alter_netboxattachment_object_type.py
+│   └── __init__.py
+├── models.py
+├── navigation.py
+├── search.py
+├── tables.py
+├── template_content.py
+├── templates
+│   └── netbox_attachments
+│       ├── __init__.py
+│       ├── add_attachment_button.html
+│       ├── generic_tab_list.html
+│       ├── netbox_attachment_edit.html
+│       ├── netbox_attachment_panel.html
+│       └── netboxattachment.html
+├── urls.py
+├── utils.py
+├── version.py
+└── views.py
+
+# ./template_content.py
+import logging
+
+from core.models.contenttypes import ObjectType
+from django.apps import apps
+from django.conf import settings
+from django.db.utils import OperationalError
+from netbox.context import current_request
+from netbox.plugins import PluginTemplateExtension
+from netbox.views import generic
+from utilities.views import ViewTab, register_model_view
+
+from netbox_attachments import filtersets, tables
+from netbox_attachments.models import NetBoxAttachment
+
+plugin_settings = settings.PLUGINS_CONFIG.get("netbox_attachments", {})
+
+
+def create_attachments_panel(self):
+    app_label, _ = self.model.split(".")
+    try:
+        return self.render("netbox_attachments/netbox_attachment_panel.html")
+    except ObjectType.DoesNotExist:
+        logging.error(f"ObjectType for {app_label} {self.model} does not exist")
+        return ""
+
+
+def get_display_on(app_model_name):
+    """Get prefered display setting (left_page, right_page, full_width_page, additional_tab) for attachment panel
+
+    Args:
+        app_model_name (str): <app_label>.<model> = (dcim.device, ipam.vlan, ...)
+
+    Returns:
+        str: Configured display setting or default
+    """
+    # set default
+    display_on = plugin_settings.get("display_default", "additional_tab")
+
+    # Find configured display setting or return default
+    if display_setting := plugin_settings.get("display_setting"):
+        display_on = display_setting.get(app_model_name, display_on)
+
+    return display_on
+
+
+def create_add_button(model_name):
+    """Creates add attachment button
+
+    Args:
+        model_name (str): <app_label>.<model> = (dcim.device, ipam.vlan, ...)
+
+    Returns:
+        Button: Add attachment button at the top of model
+    """
+
+    class Button(PluginTemplateExtension):
+        model = model_name
+
+        def buttons(self):
+            return self.render("netbox_attachments/add_attachment_button.html")
+
+    return Button
+
+
+def create_tab_view(model):
+    """Creates attachment tab. Append it to the passed model
+
+    Args:
+        model (Object): Model representation
+    """
+    name = f"{model._meta.model_name}-attachment_list"
+    path = f"{model._meta.model_name}-attachment_list"
+
+    class View(generic.ObjectChildrenView):
+        def __init__(self, *args, **kwargs):
+            self.queryset = model.objects.all()
+            self.child_model = NetBoxAttachment
+            self.table = tables.NetBoxAttachmentTable
+            self.filterset = filtersets.NetBoxAttachmentFilterSet
+            self.template_name = "netbox_attachments/generic_tab_list.html"
+            super().__init__(*args, **kwargs)
+
+        table = tables.NetBoxAttachmentTable
+        tab = ViewTab(
+            label="Attachments",
+            badge=lambda obj: NetBoxAttachment.objects.filter(
+                object_type=ObjectType.objects.get_for_model(obj),
+                object_id=obj.id,
+            )
+            .restrict(current_request.get().user, "view")
+            .count(),
+            hide_if_empty=False,
+            permission="netbox_attachments.view_netboxattachment",
+        )
+
+        def get_children(self, request, parent):
+            childrens = self.child_model.objects.filter(
+                object_type=ObjectType.objects.get_for_model(parent),
+                object_id=parent.id,
+            ).restrict(request.user, "view")
+            return childrens
+
+    register_model_view(model, name=name, path=path)(View)
+
+
+# Generate plugin extension for all classes
+def get_templates_extensions():
+    template_extensions = []
+
+    try:
+        # Iterate over all NetBox models
+        for model in apps.get_models():
+            app_label = model._meta.app_label
+            model_name = model._meta.model_name
+            app_model_name = f"{app_label}.{model_name}"
+
+            # Skip if app is not present in configuration
+            if app_label not in plugin_settings.get("apps"):
+                continue
+
+            # Load prefeed display setting and model class
+            display = get_display_on(app_model_name)
+
+            # Special case - if display setting is set as additional_tab
+            # https://docs.netbox.dev/en/stable/plugins/development/views/#additional-tabs
+            if display == "additional_tab" and model:
+                # create add attachment button at the top of the parent view
+                template_extensions.append(create_add_button(app_model_name))
+                # add attachment tab to the parent view
+                create_tab_view(model)
+                continue
+
+            # Otherwise create panels and tweak them to the configured location (left, right, full_width_page)
+            klass_name = f"{app_label}_{model}_plugin_template_extension"
+            dynamic_klass = type(
+                klass_name,
+                (PluginTemplateExtension,),
+                {"model": app_model_name, display: create_attachments_panel},
+            )
+
+            template_extensions.append(dynamic_klass)
+    except OperationalError as e:
+        logging.error("Database is not ready")
+        logging.debug(e)
+    except Exception as e:
+        logging.error("Unexpected error - netbox-attachments won't be rendered")
+        logging.debug(e)
+
+    return template_extensions
+
+
+template_extensions = get_templates_extensions()
+
+
+# ./version.py
+__version__ = "6.0.0"
+
+
+# ./models.py
+import numbers
+import os
+
+from core.models.contenttypes import ObjectType
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
+from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
+from netbox.models import NetBoxModel
+from utilities.querysets import RestrictedQuerySet
+
+from netbox_attachments.utils import attachment_upload
+
+
+class NetBoxAttachment(NetBoxModel):
+    """
+    An uploaded attachment which is associated with an object.
+    """
+
+    object_type = models.ForeignKey(to=ObjectType, on_delete=models.CASCADE)
+    object_id = models.PositiveBigIntegerField()
+    file = models.FileField(
+        upload_to=attachment_upload,
+    )
+    size = models.PositiveBigIntegerField(
+        editable=False,
+        null=True,
+        blank=True,
+        help_text="Size of the file in bytes",
+    )
+    name = models.CharField(max_length=254, blank=True)
+    description = models.CharField(
+        verbose_name=_("description"), max_length=200, blank=True
+    )
+    comments = models.TextField(blank=True)
+
+    objects = RestrictedQuerySet.as_manager()
+
+    clone_fields = ("object_type", "object_id")
+
+    class Meta:
+        ordering = ("name", "pk")  # name may be non-unique
+        verbose_name_plural = "NetBox Attachments"
+        verbose_name = "NetBox Attachment"
+
+    def __str__(self):
+        if self.name:
+            return self.name
+
+        return self.filename
+
+    @property
+    def filename(self):
+        return os.path.basename(self.file.name)
+
+    @property
+    def parent(self):
+        if self.object_type.model_class() is None:
+            # Model for the content type does not exists
+            # Model was probably deleted or uninstalled -> parent object cannot be found
+            return None
+        try:
+            return self.object_type.get_object_for_this_type(id=self.object_id)
+        except ObjectDoesNotExist:
+            # Object for the content type Model does not exists
+            return None
+
+    def get_absolute_url(self):
+        return reverse("plugins:netbox_attachments:netboxattachment", args=[self.pk])
+
+    def delete(self, *args, **kwargs):
+        _name = self.file.name
+
+        super().delete(*args, **kwargs)
+
+        # Delete file from disk
+        self.file.delete(save=False)
+
+        # Deleting the file erases its name. We restore the image's filename here in case we still need to reference it
+        # before the request finishes. (For example, to display a message indicating the ImageAttachment was deleted.)
+        self.file.name = _name
+
+    def save(self, *args, **kwargs):
+        self.size = self.file.size
+
+        if not self.file:
+            return super().save(*args, **kwargs)
+
+        if not self.name:
+            if self._state.adding:
+                self.name = self.file.name.rsplit("/", 1)[-1]
+            else:
+                self.name = self.filename.split("_", 2)[2]
+
+        super().save(*args, **kwargs)
+
+    def to_objectchange(self, action):
+        objectchange = super().to_objectchange(action)
+        objectchange.related_object = self.parent
+        return objectchange
+
+    @receiver(pre_delete)
+    def pre_delete_receiver(sender, instance, **kwargs):
+        # code that delete the related objects
+        # As you don't have generic relation you should manually
+        # find related actitities
+
+        # Workaround: only run signals on Models where PK is Integral
+        # https://github.com/Kani999/netbox-attachments/issues/44
+        if isinstance(instance.pk, numbers.Integral):
+            object_type = ObjectType.objects.get_for_model(instance)
+            attachments = NetBoxAttachment.objects.filter(
+                object_type_id=object_type.id, object_id=instance.pk
+            )
+            if attachments:
+                attachments.delete()
+
+
+# ./filtersets.py
+import django_filters
+from django.db.models import Q
+from extras.filters import TagFilter
+from netbox.filtersets import NetBoxModelFilterSet
+from utilities.filters import ContentTypeFilter
+
+from netbox_attachments.models import NetBoxAttachment
+
+
+class NetBoxAttachmentFilterSet(NetBoxModelFilterSet):
+    q = django_filters.CharFilter(method="search", label="Search")
+    created = django_filters.DateTimeFilter()
+    object_type = ContentTypeFilter()
+    name = django_filters.CharFilter(lookup_expr="icontains")
+    description = django_filters.CharFilter(lookup_expr="icontains")
+    tag = TagFilter()
+
+    class Meta:
+        model = NetBoxAttachment
+        fields = ["id", "object_type_id", "object_id", "name", "description"]
+
+    def search(self, queryset, name, value):
+        if not value.strip():
+            return queryset
+
+        filters = Q(name__icontains=value) | Q(description__icontains=value)
+        return queryset.filter(filters)
+
+
+# ./__init__.py
+from netbox.plugins import PluginConfig
+from netbox_attachments.version import __version__
+
+
+class NetBoxAttachmentsConfig(PluginConfig):
+    name = 'netbox_attachments'
+    verbose_name = 'Netbox Attachments'
+    description = 'Netbox plugin to manage attachments for any model'
+    version = __version__
+    author = 'Jan Krupa'
+    base_url = 'netbox-attachments'
+    default_settings = {
+        'apps': ['dcim', 'ipam', 'circuits', 'tenancy', 'virtualization', 'wireless'],
+        'display_default': "additional_tab",
+        'display_setting': {}
+    }
+    required_settings = []
+    min_version = '4.1.0'
+    max_version = '4.1.99'
+
+
+config = NetBoxAttachmentsConfig
+
+
+# ./export.py
+import os
+
+# Define the directory to scan and the output file
+PROJECT_DIR = "."
+OUTPUT_FILE = "exported_code.txt"
+
+def is_code_file(file_name):
+    """
+    Checks if the file is a Python code file and not a migration file.
+    """
+    return (file_name.endswith(".py") or file_name.endswith(".html"))  and "migrations" not in file_name
+
+def export_code(project_dir, output_file):
+    """
+    Exports all code files in the project to a single text file.
+    """
+    with open(output_file, "w") as outfile:
+        for root, _, files in os.walk(project_dir):
+            for file in files:
+                if is_code_file(file):
+                    file_path = os.path.join(root, file)
+                    # Write the header
+                    outfile.write(f"# {file_path}\n")
+                    # Write the file content
+                    with open(file_path, "r") as infile:
+                        outfile.write(infile.read())
+                    outfile.write("\n\n")  # Add some spacing between files
+
+if __name__ == "__main__":
+    export_code(PROJECT_DIR, OUTPUT_FILE)
+    print(f"Code exported to {OUTPUT_FILE}")
+
+
+
+# ./forms.py
+from core.models.contenttypes import ObjectType
+from django import forms
+from django.utils.translation import gettext as _
+from netbox.forms import NetBoxModelFilterSetForm, NetBoxModelForm
+from utilities.forms.fields import (
+    CommentField,
+    DynamicModelMultipleChoiceField,
+    TagFilterField,
+)
+from utilities.forms.widgets.apiselect import APISelectMultiple
+
+from netbox_attachments.models import NetBoxAttachment
+
+
+class NetBoxAttachmentForm(NetBoxModelForm):
+    comments = CommentField(label="Comment")
+
+    class Meta:
+        model = NetBoxAttachment
+        fields = [
+            "name",
+            "description",
+            "file",
+            "comments",
+            "tags",
+        ]
+
+
+class NetBoxAttachmentFilterForm(NetBoxModelFilterSetForm):
+    model = NetBoxAttachment
+    name = forms.CharField(required=False)
+    description = forms.CharField(required=False)
+    object_type_id = DynamicModelMultipleChoiceField(
+        queryset=ObjectType.objects.all(),
+        required=False,
+        label=_("Object Type"),
+        widget=APISelectMultiple(
+            api_url="/api/extras/object-types/",
+        ),
+    )
+    tag = TagFilterField(model)
+
+
+# ./utils.py
+from pathlib import Path
+
+
+def attachment_upload(instance, filename):
+    """
+    Return a path for uploading file attchments.
+    """
+    path = "netbox-attachments/"
+
+    if instance.name != filename:
+        # Rename the file to the provided name, if any. Attempt to preserve the file extension.
+        extension = "".join(Path(filename).suffixes)
+        filename = "".join([instance.name, extension])
+
+    return "{}{}_{}_{}".format(
+        path, instance.object_type.name, instance.object_id, filename
+    )
+
+
+# ./search.py
+from netbox.search import SearchIndex, register_search
+
+from netbox_attachments.models import NetBoxAttachment
+
+
+@register_search
+class NetBoxAttachmentIndex(SearchIndex):
+    model = NetBoxAttachment
+    fields = (
+        ("name", 100),
+        ("description", 200),
+        ("comments", 5000),
+    )
+
+
+# ./tables.py
+import django_tables2 as tables
+from netbox.tables import NetBoxTable, columns
+
+from netbox_attachments.models import NetBoxAttachment
+
+ATTACHMENT_LINK = """
+<a href="{% url 'plugins:netbox_attachments:netboxattachment' pk=record.pk %}">
+    {{ record }}
+</a>
+"""
+FILE_SIZE = "{{ record.size|filesizeformat }}"
+DOWNLOAD_BUTTON = """
+<a href="{{record.file.url}}" target="_blank" class="btn btn-sm btn-primary download-attachment" title="Download">
+  <i class="mdi mdi-download"></i>
+</a>
+"""
+
+
+def get_missing_parent_row_class(record):
+    if not record.parent:
+        return "danger"
+    else:
+        return ""
+
+
+class NetBoxAttachmentTable(NetBoxTable):
+    name = tables.TemplateColumn(template_code=ATTACHMENT_LINK)
+    object_type = columns.ContentTypeColumn(
+        verbose_name=("Object Type"),
+    )
+    parent = tables.Column(verbose_name=("Parent"), linkify=True)
+    tags = columns.TagColumn()
+    file = tables.FileColumn()
+    size = tables.TemplateColumn(template_code=FILE_SIZE)
+    actions = columns.ActionsColumn(extra_buttons=DOWNLOAD_BUTTON)
+
+    class Meta(NetBoxTable.Meta):
+        model = NetBoxAttachment
+        fields = (
+            "pk",
+            "id",
+            "name",
+            "description",
+            "parent",
+            "object_type",
+            "object_id",
+            "file",
+            "size",
+            "comments",
+            "actions",
+            "created",
+            "last_updated",
+            "tags",
+        )
+        default_columns = (
+            "id",
+            "name",
+            "description",
+            "parent",
+            "object_type",
+            "object_id",
+            "tags",
+        )
+        row_attrs = {
+            "class": get_missing_parent_row_class,
+        }
+
+
+# ./navigation.py
+from netbox.plugins import PluginMenu, PluginMenuItem
+
+menu = PluginMenu(
+    label="Attachments",
+    icon_class="mdi mdi-paperclip",
+    groups=(
+        (
+            "",
+            (
+                PluginMenuItem(
+                    link="plugins:netbox_attachments:netboxattachment_list",
+                    link_text="NetBox Attachments",
+                    permissions=["netbox_attachments.view_netboxattachment"],
+                ),
+            ),
+        ),
+    ),
+)
+
+
+# ./urls.py
+from django.urls import path
+from netbox.views.generic import ObjectChangeLogView
+
+from netbox_attachments import models, views
+
+urlpatterns = (
+    # Files
+    path(
+        "netbox-attachments/add/",
+        views.NetBoxAttachmentEditView.as_view(),
+        name="netboxattachment_add",
+    ),
+    path(
+        "netbox-attachments/<int:pk>/edit/",
+        views.NetBoxAttachmentEditView.as_view(),
+        name="netboxattachment_edit",
+    ),
+    path(
+        "netbox-attachments/<int:pk>/delete/",
+        views.NetBoxAttachmentDeleteView.as_view(),
+        name="netboxattachment_delete",
+    ),
+    path(
+        "netbox-attachments/",
+        views.NetBoxAttachmentListView.as_view(),
+        name="netboxattachment_list",
+    ),
+    path(
+        "netbox-attachments/<int:pk>/",
+        views.NetBoxAttachmentView.as_view(),
+        name="netboxattachment",
+    ),
+    path(
+        "netbox-attachments/<int:pk>/changelog/",
+        ObjectChangeLogView.as_view(),
+        name="netboxattachment_changelog",
+        kwargs={"model": models.NetBoxAttachment},
+    ),
+)
+
+
+# ./views.py
+from core.models.contenttypes import ObjectType
+from django.shortcuts import get_object_or_404
+from netbox.views import generic
+
+from netbox_attachments import filtersets, forms, models, tables
+
+
+class NetBoxAttachmentView(generic.ObjectView):
+    controls = []
+    queryset = models.NetBoxAttachment.objects.all()
+
+
+class NetBoxAttachmentListView(generic.ObjectListView):
+    actions = {
+        "import": {"add"},
+        "export": set(),
+        "bulk_edit": {"change"},
+        "bulk_delete": {"delete"},
+    }
+    queryset = models.NetBoxAttachment.objects.all()
+    table = tables.NetBoxAttachmentTable
+    filterset = filtersets.NetBoxAttachmentFilterSet
+    filterset_form = forms.NetBoxAttachmentFilterForm
+
+
+class NetBoxAttachmentEditView(generic.ObjectEditView):
+    queryset = models.NetBoxAttachment.objects.all()
+    form = forms.NetBoxAttachmentForm
+    template_name = "netbox_attachments/netbox_attachment_edit.html"
+    default_return_url = "plugins:netbox_attachments:netboxattachment_list"
+
+    def alter_object(self, instance, request, args, kwargs):
+        if not instance.pk:
+            # Assign the parent object based on URL kwargs
+            instance.object_type = get_object_or_404(
+                ObjectType, pk=request.GET.get("object_type")
+            )
+            instance.object_id = request.GET.get("object_id")
+
+        return instance
+
+    def get_extra_addanother_params(self, request):
+        return {
+            "object_type": request.GET.get("object_type"),
+            "object_id": request.GET.get("object_id"),
+        }
+
+
+class NetBoxAttachmentDeleteView(generic.ObjectDeleteView):
+    queryset = models.NetBoxAttachment.objects.all()
+    default_return_url = "plugins:netbox_attachments:netboxattachment_list"
+
+
+# ./migrations/0002_alter_netboxattachment_options_and_more.py
+# Generated by Django 4.1.3 on 2022-11-14 07:05
+
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('netbox_attachments', '0001_initial'),
+    ]
+
+    operations = [
+        migrations.AlterModelOptions(
+            name='netboxattachment',
+            options={'ordering': ('name', 'pk'), 'verbose_name': 'NetBox Attachment',
+                     'verbose_name_plural': 'NetBox Attachments'},
+        ),
+        migrations.AddField(
+            model_name='netboxattachment',
+            name='comments',
+            field=models.TextField(blank=True),
+        ),
+    ]
+
+
+# ./migrations/0005_netboxattachment_description.py
+# Generated by Django 4.2.4 on 2023-09-07 11:11
+
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('netbox_attachments', '0004_netboxattachment_size_and_more'),
+    ]
+
+    operations = [
+        migrations.AddField(
+            model_name='netboxattachment',
+            name='description',
+            field=models.CharField(blank=True, max_length=200),
+        ),
+    ]
+
+
+# ./migrations/__init__.py
+
+
+# ./migrations/0004_netboxattachment_size_and_more.py
+# Generated by Django 4.1.5 on 2023-01-31 11:41
+
+from django.db import migrations, models
+import utilities.json
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('netbox_attachments', '0003_alter_netboxattachment_name'),
+    ]
+
+    operations = [
+        migrations.AddField(
+            model_name='netboxattachment',
+            name='size',
+            field=models.PositiveBigIntegerField(blank=True, editable=False, null=True),
+        ),
+        migrations.AlterField(
+            model_name='netboxattachment',
+            name='custom_field_data',
+            field=models.JSONField(blank=True, default=dict, encoder=utilities.json.CustomFieldJSONEncoder),
+        ),
+    ]
+
+
+# ./migrations/0003_alter_netboxattachment_name.py
+# Generated by Django 4.1.3 on 2022-11-28 07:19
+
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('netbox_attachments', '0002_alter_netboxattachment_options_and_more'),
+    ]
+
+    operations = [
+        migrations.AlterField(
+            model_name='netboxattachment',
+            name='name',
+            field=models.CharField(blank=True, max_length=254),
+        ),
+    ]
+
+
+# ./migrations/0006_rename_content_type_netboxattachment_object_type.py
+# Generated by Django 5.0.6 on 2024-07-16 12:19
+
+from django.db import migrations
+
+
+class Migration(migrations.Migration):
+    dependencies = [
+        ("netbox_attachments", "0005_netboxattachment_description"),
+    ]
+
+    operations = [
+        migrations.RenameField(
+            model_name="netboxattachment",
+            old_name="content_type",
+            new_name="object_type",
+        ),
+    ]
+
+
+# ./migrations/0007_alter_netboxattachment_object_type.py
+# Generated by Django 5.0.6 on 2024-07-16 12:57
+
+import django.db.models.deletion
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ("core", "0010_gfk_indexes"),
+        ("netbox_attachments", "0006_rename_content_type_netboxattachment_object_type"),
+    ]
+
+    operations = [
+        migrations.AlterField(
+            model_name="netboxattachment",
+            name="object_type",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="core.objecttype"
+            ),
+        ),
+    ]
+
+
+# ./migrations/0001_initial.py
+# Generated by Django 4.0.7 on 2022-11-07 11:58
+
+import django.core.serializers.json
+from django.db import migrations, models
+import django.db.models.deletion
+import netbox_attachments.utils
+import taggit.managers
+
+
+class Migration(migrations.Migration):
+
+    initial = True
+
+    dependencies = [
+        ('contenttypes', '0002_remove_content_type_name'),
+        ('extras', '0077_customlink_extend_text_and_url'),
+    ]
+
+    operations = [
+        migrations.CreateModel(
+            name='NetBoxAttachment',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False)),
+                ('created', models.DateTimeField(auto_now_add=True, null=True)),
+                ('last_updated', models.DateTimeField(auto_now=True, null=True)),
+                ('custom_field_data', models.JSONField(blank=True, default=dict, encoder=django.core.serializers.json.DjangoJSONEncoder)),
+                ('object_id', models.PositiveBigIntegerField()),
+                ('file', models.FileField(upload_to=netbox_attachments.utils.attachment_upload)),
+                ('name', models.CharField(blank=True, max_length=50)),
+                ('content_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='contenttypes.contenttype')),
+                ('tags', taggit.managers.TaggableManager(through='extras.TaggedItem', to='extras.Tag')),
+            ],
+            options={
+                'ordering': ('name', 'pk'),
+            },
+        ),
+    ]
+
+
+# ./api/serializers.py
+from core.models.contenttypes import ObjectType
+from django.core.exceptions import ObjectDoesNotExist
+from netbox.api.fields import ContentTypeField
+from netbox.api.serializers import NetBoxModelSerializer
+from rest_framework import serializers
+from utilities.api import get_serializer_for_model
+
+from netbox_attachments.models import NetBoxAttachment
+
+
+class NetBoxAttachmentSerializer(NetBoxModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        view_name="plugins-api:netbox_attachments-api:netboxattachment-detail"
+    )
+    object_type = ContentTypeField(queryset=ObjectType.objects.all())
+    parent = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = NetBoxAttachment
+        fields = [
+            "id",
+            "url",
+            "display",
+            "object_type",
+            "object_id",
+            "parent",
+            "name",
+            "description",
+            "file",
+            "created",
+            "last_updated",
+            "comments",
+        ]
+        brief_fields = ("id", "url", "display", "name", "description", "file")
+
+    def validate(self, data):
+        # Validate that the parent object exists
+        try:
+            if "object_type" in data and "object_id" in data:
+                data["object_type"].get_object_for_this_type(id=data["object_id"])
+        except ObjectDoesNotExist:
+            raise serializers.ValidationError(
+                "Invalid parent object: {} ID {}".format(
+                    data["object_type"], data["object_id"]
+                )
+            )
+
+        # Enforce model validation
+        super().validate(data)
+
+        return data
+
+    # @swagger_serializer_method(serializer_or_field=serializers.JSONField)
+    def get_parent(self, obj):
+        if obj.parent:
+            serializer = get_serializer_for_model(obj.parent)
+            return serializer(
+                obj.parent, nested=True, context={"request": self.context["request"]}
+            ).data
+        else:
+            return None
+
+
+# ./api/__init__.py
+
+
+# ./api/urls.py
+from netbox.api.routers import NetBoxRouter
+
+from netbox_attachments.api import views
+
+app_name = "netbox_attachments"
+router = NetBoxRouter()
+router.register("netbox-attachments", views.NetBoxAttachmentViewSet)
+
+urlpatterns = router.urls
+
+
+# ./api/views.py
+from netbox.api.metadata import ContentTypeMetadata
+from netbox.api.viewsets import NetBoxModelViewSet
+
+from netbox_attachments import filtersets, models
+from netbox_attachments.api.serializers import NetBoxAttachmentSerializer
+
+
+class NetBoxAttachmentViewSet(NetBoxModelViewSet):
+    metadata_class = ContentTypeMetadata
+    queryset = models.NetBoxAttachment.objects.all()
+    serializer_class = NetBoxAttachmentSerializer
+    filterset_class = filtersets.NetBoxAttachmentFilterSet
+
+
+# ./templates/netbox_attachments/netbox_attachment_edit.html
+{% extends "generic/object_edit.html" %}
+{% load helpers %}
+{% load form_helpers %}
+{% block form %}
+    <div class="field-group mb-5">
+        <div class="row mb-3">
+            {% if object.parent %}
+                <label class="col-sm-3 col-form-label text-lg-end required">{{ object.parent|meta:"verbose_name"|bettertitle }}</label>
+                <div class="col-sm-9">
+                    <div class="form-control-plaintext">{{ object.parent|linkify }}</div>
+                </div>
+            {% else %}
+                <!-- Fallback if parent is missing. It should not happend anymore -->
+                <label class="col-sm-3 col-form-label text-lg-end required">Parent</label>
+                <div class="col-sm-9">
+                    <div class="form-control-plaintext">Missing parent object</div>
+                </div>
+            {% endif %}
+        </div>
+        {% render_form form %}
+    </div>
+{% endblock form %}
+
+
+# ./templates/netbox_attachments/netboxattachment.html
+{% extends "generic/object.html" %}
+{% load render_table from django_tables2 %}
+{% load plugins %}
+{% block content %}
+  <div class="row mb-3">
+    <div class="col col-md-6">
+      <div class="card">
+        <h5 class="card-header">Attachments</h5>
+        <div class="card-body">
+          <table class="table table-hover attr-table">
+            <tr>
+              <th scope="row">Name</th>
+              <td>{{ object }}</td>
+            </tr>
+            <tr>
+              <th scope="row">Description</th>
+              <td>{{ object.description }}</td>
+            </tr>
+            <tr>
+              <th scope="row">Filename</th>
+              <td>
+                <a href="{{ object.file.url }}" target="_blank">{{ object.filename }}</a>
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Size</th>
+              <td>{{ object.size|filesizeformat }}</td>
+            </tr>
+            <tr>
+              <th scope="row">Parent</th>
+              <td>{{ object.parent|linkify }}</td>
+            </tr>
+            <tr>
+              <th scope="row">Created</th>
+              <td>{{ object.created }}</td>
+            </tr>
+            <tr>
+              <th scope="row">Updated</th>
+              <td>{{ object.last_updated }}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+      {% include "inc/panels/custom_fields.html" %}
+      {% plugin_left_page object %}
+    </div>
+    <div class="col col-md-6">
+      {% include "inc/panels/tags.html" %}
+      {% include "inc/panels/comments.html" %}
+      {% plugin_right_page object %}
+    </div>
+  </div>
+  <div class="row">
+    <div class="col col-md-12">{% plugin_full_width_page object %}</div>
+  </div>
+{% endblock content %}
+
+
+# ./templates/netbox_attachments/add_attachment_button.html
+{% if perms.netbox_attachments.add_netboxattachment %}
+    <a href="{% url 'plugins:netbox_attachments:netboxattachment_add' %}?object_type={{ object|content_type_id }}&object_id={{ object.pk }}&return_url={{ object.get_absolute_url }}"
+       class="btn btn-secondary">
+        <i class="mdi mdi-paperclip" aria-hidden="true"></i>
+        Add Attachment
+    </a>
+{% endif %}
+
+
+# ./templates/netbox_attachments/__init__.py
+
+
+# ./templates/netbox_attachments/netbox_attachment_panel.html
+{% load helpers %}
+{% load perms %}
+{% if perms.netbox_attachments.view_netboxattachment %}
+    {% load i18n %}
+    <div class="col col-md-12">
+        <div class="card">
+            <h5 class="card-header">
+                {% trans "Attachments" %}
+                <div class="card-actions">
+                    {% if perms.netbox_attachments.add_netboxattachment %}
+                        <a href="{% url 'plugins:netbox_attachments:netboxattachment_add' %}?object_type={{ object|content_type_id }}&object_id={{ object.pk }}&return_url={{ request.path }}"
+                           class="btn btn-ghost-primary btn-sm">
+                            <i class="mdi mdi-plus-thick" aria-hidden="true"></i> {% trans "Add Attachment" %}
+                        </a>
+                    {% endif %}
+                </div>
+            </h5>
+            {% htmx_table 'plugins:netbox_attachments:netboxattachment_list' object_type_id=object|content_type_id object_id=object.pk %}
+        </div>
+    </div>
+{% endif %}
+
+
+# ./templates/netbox_attachments/generic_tab_list.html
+{% extends "generic/object_children.html" %}
+{% load render_table from django_tables2 %}
+{% load static %}
+{% load helpers %}
+{% if perms.netbox_attachments.view_netboxattachment %}
+    {% block content %}
+        {% block table_controls %}
+            {% include "inc/table_controls_htmx.html" with table_modal="NetBoxAttachmentTable_config" %}
+        {% endblock table_controls %}
+        <div class="card">
+            <div class="card-body" id="object_list">
+                {% htmx_table 'plugins:netbox_attachments:netboxattachment_list' object_type_id=object|content_type_id object_id=object.pk %}
+            </div>
+        </div>
+        <div class="noprint bulk-buttons">
+            <div class="bulk-button-group"></div>
+            <div class="bulk-button-group">
+                {% if perms.netbox_attachments.add_netboxattachment %}
+                    <a href="{% url 'plugins:netbox_attachments:netboxattachment_add' %}?object_type={{ object|content_type_id }}&object_id={{ object.pk }}&return_url={{ request.path }}"
+                       class="btn btn-primary">
+                        <i class="mdi mdi-plus-thick" aria-hidden="true"></i>
+                        Add Attachment
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    {% endblock content %}
+{% endif %}
+
+
