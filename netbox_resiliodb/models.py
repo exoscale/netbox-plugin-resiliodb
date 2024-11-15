@@ -171,8 +171,19 @@ class LCAImpactIndicatorValue(NetBoxModel):
 class PluginSettings(NetBoxModel):
     """
     Stores global settings for the plugin.
+    Single instance model - only one record with id=1 is allowed.
     """
+    id = models.AutoField(primary_key=True)
     api_url = models.URLField()
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if self.pk == 1:
+            return  # Prevent deletion of the only instance
+        super().delete(*args, **kwargs)
     api_key = models.CharField(max_length=255)
     api_version = models.CharField(max_length=20)
     default_usage_period_hours = models.FloatField(default=43800)

@@ -2,9 +2,10 @@ from netbox.plugins import PluginMenuItem, PluginMenu
 
 menu_items = (
     PluginMenuItem(
-        link='plugins:netbox_resiliodb:pluginsettings_list',
+        link='plugins:netbox_resiliodb:pluginsettings',
         link_text='Settings',
-        permissions=['netbox_resiliodb.view_pluginsettings']
+        permissions=['netbox_resiliodb.view_pluginsettings'],
+        args=[1]
     ),
     PluginMenuItem(
         link='plugins:netbox_resiliodb:lcatype_list',
