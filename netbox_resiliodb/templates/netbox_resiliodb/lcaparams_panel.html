@@ -1,5 +1,6 @@
 {% load helpers %}
 {% load perms %}
+{% load resiliodb_helpers %}
 {% if perms.netbox_resiliodb.view_lcaparams %}
     {% load i18n %}
     <div class="card">
@@ -15,7 +16,7 @@
                 </div>
             </h5>
             <div class="card-body">
-                {% with params=object.lcaparams_set.first %}
+                {% with params=object|content_type_parameters %}
                     {% if params %}
                         <table class="table table-hover">
                             <tr>
