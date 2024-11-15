@@ -5,10 +5,12 @@ from netbox.plugins import PluginTemplateExtension
 def create_lcaparams_panel(self):
     try:
         return self.render('netbox_resiliodb/lcaparams_panel.html', extra_context={
-            'object': self.context['object']
+            'object': self.context['object'],
+            'request': self.context['request']
         })
     except Exception as e:
-        return f"<!-- Error rendering LCA params panel: {str(e)} -->"
+        logging.error(f"Error rendering LCA params panel: {str(e)}")
+        return ""
 
 class DeviceTypeLCAParams(PluginTemplateExtension):
     model = 'dcim.devicetype'
