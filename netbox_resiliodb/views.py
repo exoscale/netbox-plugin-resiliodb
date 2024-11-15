@@ -110,7 +110,7 @@ class LCAParamsEditView(generic.ObjectEditView):
             # Assign the parent object based on URL kwargs
             content_type_id = request.GET.get('content_type')
             object_id = request.GET.get('object_id')
-            
+
             if content_type_id and object_id:
                 instance.content_type_id = content_type_id
                 instance.object_id = object_id
@@ -125,7 +125,7 @@ class LCAParamsEditView(generic.ObjectEditView):
                         ).first()
                         if mapping and mapping.lca_type.default_payload:
                             instance.parameters = mapping.lca_type.default_payload
-                    
+
                     elif hasattr(parent, 'device_set'):  # It's a DeviceType
                         # Find first device of this type that has a role with LCA mapping
                         device = parent.device_set.first()
@@ -135,7 +135,6 @@ class LCAParamsEditView(generic.ObjectEditView):
                             ).first()
                             if mapping and mapping.lca_type.default_payload:
                                 instance.parameters = mapping.lca_type.default_payload
-
         return instance
 
     def get_return_url(self, request, obj=None):
