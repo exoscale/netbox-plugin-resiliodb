@@ -31,3 +31,4 @@ netbox.pid
 .vscode
 .python-version
 .aider*
+.env

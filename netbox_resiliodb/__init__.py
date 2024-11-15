@@ -1,5 +1,4 @@
 from netbox.plugins import PluginConfig
-from .navigation import menu_items
 
 class NetBoxResilioDBConfig(PluginConfig):
     name = 'netbox_resiliodb'
