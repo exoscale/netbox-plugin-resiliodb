@@ -22,7 +22,11 @@ class DeviceRoleLCATypeMappingForm(NetBoxModelForm):
         queryset=DeviceRole.objects.all()
     )
     lca_type = DynamicModelChoiceField(
-        queryset=LCAType.objects.all()
+        queryset=LCAType.objects.all(),
+        context={
+            'label': 'name',
+            'description': 'description'
+        }
     )
 
     class Meta:
