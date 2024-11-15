@@ -3,7 +3,10 @@ from django.conf import settings
 from netbox.plugins import PluginTemplateExtension
 
 def create_lcaparams_panel(self):
-    return self.render('netbox_resiliodb/lcaparams_panel.html')
+    try:
+        return self.render('netbox_resiliodb/lcaparams_panel.html')
+    except Exception as e:
+        return f"<!-- Error rendering LCA params panel: {str(e)} -->"
 
 class DeviceTypeLCAParams(PluginTemplateExtension):
     model = 'dcim.devicetype'
