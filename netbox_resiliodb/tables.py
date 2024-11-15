@@ -1,6 +1,5 @@
 import django_tables2 as tables
 from netbox.tables import NetBoxTable, columns
-from dcim.tables.columns import DeviceRoleColumn
 from .models import LCAType, Indicator, DeviceRoleLCATypeMapping, SiteCountryMapping, PluginSettings
 
 class LCATypeTable(NetBoxTable):
@@ -21,7 +20,7 @@ class IndicatorTable(NetBoxTable):
         default_columns = ('code', 'name', 'unit', 'description')
 
 class DeviceRoleLCATypeMappingTable(NetBoxTable):
-    device_role = DeviceRoleColumn(linkify=True)
+    device_role = tables.Column(linkify=True)
     lca_type = tables.Column(linkify=True)
     
     class Meta(NetBoxTable.Meta):
