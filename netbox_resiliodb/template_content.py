@@ -1,3 +1,4 @@
+import logging
 from django.apps import apps
 from django.conf import settings
 from netbox.plugins import PluginTemplateExtension
