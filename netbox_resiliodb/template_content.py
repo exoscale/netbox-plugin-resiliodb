@@ -18,6 +18,6 @@ class DeviceLCAParams(PluginTemplateExtension):
     model = 'dcim.device'
     
     def right_page(self):
-        return [create_lcaparams_panel(self)]
+        return create_lcaparams_panel(self)
 
 template_extensions = [DeviceTypeLCAParams, DeviceLCAParams]
