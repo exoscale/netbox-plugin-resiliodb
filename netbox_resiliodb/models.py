@@ -99,7 +99,13 @@ class LCAParams(NetBoxModel):
 
     class Meta:
         ordering = ('content_type', 'object_id')
-        unique_together = ('content_type', 'object_id')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['content_type', 'object_id'],
+                name='unique_lcaparams_per_object',
+                violation_error_message="LCA Parameters already exist for this object"
+            )
+        ]
         verbose_name = "LCA Parameters"
         verbose_name_plural = "LCA Parameters"
 
