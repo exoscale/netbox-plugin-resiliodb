@@ -4,7 +4,9 @@ from netbox.plugins import PluginTemplateExtension
 
 def create_lcaparams_panel(self):
     try:
-        return self.render('netbox_resiliodb/lcaparams_panel.html')
+        return self.render('netbox_resiliodb/lcaparams_panel.html', extra_context={
+            'object': self.context['object']
+        })
     except Exception as e:
         return f"<!-- Error rendering LCA params panel: {str(e)} -->"
 
