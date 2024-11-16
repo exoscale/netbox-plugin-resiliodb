@@ -89,22 +89,6 @@ def get_device_geography(device):
     Get geography for a device by traversing the location hierarchy.
     Checks device bay -> rack -> site -> region for country mapping.
     """
-    # Check if device is in a device bay
-    if hasattr(device, 'device_bay'):
-        parent_device = device.device_bay.device
-        if parent_device and parent_device.site:
-            # Check site mapping
-            site_mapping = models.SiteCountryMapping.objects.filter(site=parent_device.site).first()
-            if site_mapping:
-                return site_mapping.country
-            # Check region mapping
-            if parent_device.site.region:
-                region_mapping = models.SiteCountryMapping.objects.filter(
-                    region=parent_device.site.region
-                ).first()
-                if region_mapping:
-                    return region_mapping.country
-
     # Check device's own site
     if device.site:
         # Check site mapping
@@ -118,7 +102,7 @@ def get_device_geography(device):
             ).first()
             if region_mapping:
                 return region_mapping.country
-    
+
     return None
 
 def get_device_params(device):
