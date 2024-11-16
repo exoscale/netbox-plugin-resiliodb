@@ -1,5 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
-from dcim.models import ModuleType, Device
+from dcim.models import ModuleType, Device, DeviceBay, Rack
 from .. import models
 from ..cpu_data import CPUData
 
@@ -84,6 +84,43 @@ def update_enclosure_params(device):
         'rack_unit': int(device.device_type.u_height) # INFO not sure about proper way to handle 0.5 height device (ie half rack)
     }
 
+def get_device_geography(device):
+    """
+    Get geography for a device by traversing the location hierarchy.
+    Checks device bay -> rack -> site -> region for country mapping.
+    """
+    # Check if device is in a device bay
+    if hasattr(device, 'device_bay'):
+        parent_device = device.device_bay.device
+        if parent_device and parent_device.site:
+            # Check site mapping
+            site_mapping = models.SiteCountryMapping.objects.filter(site=parent_device.site).first()
+            if site_mapping:
+                return site_mapping.country
+            # Check region mapping
+            if parent_device.site.region:
+                region_mapping = models.SiteCountryMapping.objects.filter(
+                    region=parent_device.site.region
+                ).first()
+                if region_mapping:
+                    return region_mapping.country
+
+    # Check device's own site
+    if device.site:
+        # Check site mapping
+        site_mapping = models.SiteCountryMapping.objects.filter(site=device.site).first()
+        if site_mapping:
+            return site_mapping.country
+        # Check region mapping
+        if device.site.region:
+            region_mapping = models.SiteCountryMapping.objects.filter(
+                region=device.site.region
+            ).first()
+            if region_mapping:
+                return region_mapping.country
+    
+    return None
+
 def get_device_params(device):
     """Get LCA parameters for a device"""
     if not device.role:
@@ -106,6 +143,12 @@ def get_device_params(device):
         params.update(get_server_components(device))
     if endpoint == "blade_enclosure":
         params.update(update_enclosure_params(device))
+
+    # Update geography in usage parameters if found
+    geography = get_device_geography(device)
+    if geography and 'usage' in params:
+        params['usage']['geography'] = geography
+
     return params
 
 def get_device_type_params(device_type):
