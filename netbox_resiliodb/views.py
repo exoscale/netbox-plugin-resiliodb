@@ -1,6 +1,7 @@
 import logging
 from netbox.views import generic
 from dcim.models import ModuleType
+from django.contrib.contenttypes.models import ContentType
 from . import models, tables, forms
 from .cpu_data import CPUData
 
