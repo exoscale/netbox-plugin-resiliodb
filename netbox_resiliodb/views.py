@@ -148,6 +148,12 @@ class LCAParamsEditView(generic.ObjectEditView):
                                         "size_gb": 8
                                     }
                                     break
+                                elif tag_name == 'GPU':
+                                    instance.parameters = {
+                                        "die_surface_mm2": 200,
+                                        "litho_nm": 22
+                                    }
+                                    break
                                 # HDD just needs the tag, no parameters needed
                     elif hasattr(parent, 'role'):  # It's a Device
                         # Look for a matching LCA type for the device role
