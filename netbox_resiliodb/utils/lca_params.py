@@ -7,7 +7,7 @@ def get_module_type_params(module_type):
     """Get default parameters based on module type tags"""
     if not module_type.tags.all():
         return None
-        
+
     for tag in module_type.tags.all():
         tag_name = tag.name.upper()
         if tag_name == 'CPU':
@@ -79,6 +79,11 @@ def get_server_components(device):
         'hdd_disks': {'quantity': hdd_count}
     }
 
+def update_enclosure_params(device):
+    return {
+        'rack_unit': int(device.device_type.u_height) # INFO not sure about proper way to handle 0.5 height device (ie half rack)
+    }
+
 def get_device_params(device):
     """Get LCA parameters for a device"""
     if not device.role:
@@ -99,7 +104,8 @@ def get_device_params(device):
     endpoint = mapping.lca_type.resilio_endpoint
     if endpoint.endswith(('_server', 'workstation', 'laptop')):
         params.update(get_server_components(device))
-
+    if endpoint == "blade_enclosure":
+        params.update(update_enclosure_params(device))
     return params
 
 def get_device_type_params(device_type):
