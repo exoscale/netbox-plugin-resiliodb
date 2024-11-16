@@ -1,5 +1,6 @@
 import logging
 from netbox.views import generic
+from dcim.models import ModuleType
 from . import models, tables, forms
 
 class LCATypeListView(generic.ObjectListView):
