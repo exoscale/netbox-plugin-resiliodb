@@ -118,7 +118,7 @@ class LCAParamsEditView(generic.ObjectEditView):
 
                 # Get the parent object
                 parent = instance.content_object
-                if parent:
+                if parent: # TODO -> this should only go there if it's not a module type otherwise, it should have it's own branch adding default data based on the tag.
                     if hasattr(parent, 'role'):  # It's a Device
                         # Look for a matching LCA type for the device role
                         mapping = models.DeviceRoleLCATypeMapping.objects.filter(

@@ -15,14 +15,21 @@ def create_lcaparams_panel(self):
 
 class DeviceTypeLCAParams(PluginTemplateExtension):
     model = 'dcim.devicetype'
-    
+
     def right_page(self):
         return create_lcaparams_panel(self)
 
 class DeviceLCAParams(PluginTemplateExtension):
     model = 'dcim.device'
-    
+
     def right_page(self):
         return create_lcaparams_panel(self)
 
-template_extensions = [DeviceTypeLCAParams, DeviceLCAParams]
+class ModuleTypeLCAParams(PluginTemplateExtension):
+    model = 'dcim.moduletype'
+
+    def right_page(self):
+        return create_lcaparams_panel(self)
+
+
+template_extensions = [DeviceTypeLCAParams, DeviceLCAParams, ModuleTypeLCAParams]
