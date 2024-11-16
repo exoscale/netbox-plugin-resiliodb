@@ -2,6 +2,7 @@ import logging
 from netbox.views import generic
 from dcim.models import ModuleType
 from . import models, tables, forms
+from .cpu_data import CPUData
 
 class LCATypeListView(generic.ObjectListView):
     queryset = models.LCAType.objects.all()
@@ -126,10 +127,13 @@ class LCAParamsEditView(generic.ObjectEditView):
                             for tag in parent.tags.all():
                                 tag_name = tag.name.upper()
                                 if tag_name == 'CPU':
+                                    # Get CPU name from module type model name
+                                    cpu_name = parent.model
+                                    cpu_specs = CPUData.get_cpu_specs(cpu_name)
                                     instance.parameters = {
-                                        "name": instance.model,
-                                        "litho_nm": 14,
-                                        "die_surface_mm2": 126
+                                        "name": cpu_name,
+                                        "litho_nm": cpu_specs['litho_nm'],
+                                        "die_surface_mm2": cpu_specs['die_surface_mm2']
                                     }
                                     break
                                 elif tag_name == 'SSD':
