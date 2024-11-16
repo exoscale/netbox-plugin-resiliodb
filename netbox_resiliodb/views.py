@@ -123,12 +123,28 @@ class LCAParamsEditView(generic.ObjectEditView):
                     if isinstance(parent, ModuleType):  # It's a ModuleType
                         # Get default parameters based on module type tags
                         if parent.tags.all():
-                            # Find first tag that matches an LCA type name
                             for tag in parent.tags.all():
-                                lca_type = models.LCAType.objects.filter(name__iexact=tag.name).first()
-                                if lca_type and lca_type.default_payload:
-                                    instance.parameters = lca_type.default_payload
+                                tag_name = tag.name.upper()
+                                if tag_name == 'CPU':
+                                    instance.parameters = {
+                                        "name": "intel Intel Core i5",
+                                        "litho_nm": 14,
+                                        "die_surface_mm2": 126
+                                    }
                                     break
+                                elif tag_name == 'SSD':
+                                    instance.parameters = {
+                                        "casing": "casing_M2",
+                                        "size_gb": 564,
+                                        "technology": "TLC"
+                                    }
+                                    break
+                                elif tag_name == 'RAM':
+                                    instance.parameters = {
+                                        "size_gb": 8
+                                    }
+                                    break
+                                # HDD just needs the tag, no parameters needed
                     elif hasattr(parent, 'role'):  # It's a Device
                         # Look for a matching LCA type for the device role
                         mapping = models.DeviceRoleLCATypeMapping.objects.filter(
