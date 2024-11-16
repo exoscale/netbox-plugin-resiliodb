@@ -118,15 +118,23 @@ class LCAParamsEditView(generic.ObjectEditView):
 
                 # Get the parent object
                 parent = instance.content_object
-                if parent: # TODO -> this should only go there if it's not a module type otherwise, it should have it's own branch adding default data based on the tag.
-                    if hasattr(parent, 'role'):  # It's a Device
+                if parent:
+                    if isinstance(parent, ModuleType):  # It's a ModuleType
+                        # Get default parameters based on module type tags
+                        if parent.tags.all():
+                            # Find first tag that matches an LCA type name
+                            for tag in parent.tags.all():
+                                lca_type = models.LCAType.objects.filter(name__iexact=tag.name).first()
+                                if lca_type and lca_type.default_payload:
+                                    instance.parameters = lca_type.default_payload
+                                    break
+                    elif hasattr(parent, 'role'):  # It's a Device
                         # Look for a matching LCA type for the device role
                         mapping = models.DeviceRoleLCATypeMapping.objects.filter(
                             device_role=parent.role
                         ).first()
                         if mapping and mapping.lca_type.default_payload:
                             instance.parameters = mapping.lca_type.default_payload
-
                     elif hasattr(parent, 'instances'):  # It's a DeviceType
                         # Find first device of this type that has a role with LCA mapping
                         device = parent.instances.first()
