@@ -127,7 +127,7 @@ class LCAParamsEditView(generic.ObjectEditView):
                                 tag_name = tag.name.upper()
                                 if tag_name == 'CPU':
                                     instance.parameters = {
-                                        "name": "intel Intel Core i5",
+                                        "name": instance.model,
                                         "litho_nm": 14,
                                         "die_surface_mm2": 126
                                     }
