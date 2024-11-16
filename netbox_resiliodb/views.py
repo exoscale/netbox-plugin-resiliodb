@@ -160,8 +160,60 @@ class LCAParamsEditView(generic.ObjectEditView):
                         mapping = models.DeviceRoleLCATypeMapping.objects.filter(
                             device_role=parent.role
                         ).first()
-                        if mapping and mapping.lca_type.default_payload:
-                            instance.parameters = mapping.lca_type.default_payload
+                        
+                        if mapping and mapping.lca_type:
+                            # Initialize with default payload
+                            instance.parameters = mapping.lca_type.default_payload or {}
+                            
+                            # Check if device is a server/workstation/laptop based on endpoint
+                            endpoint = mapping.lca_type.resilio_endpoint
+                            if endpoint.endswith(('_server', 'workstation', 'laptop')):
+                                # Initialize arrays for components
+                                cpus = []
+                                rams = []
+                                ssds = []
+                                gpus = []
+                                hdd_count = 0
+                                
+                                # Iterate through device modules
+                                for module in parent.modules.all():
+                                    if not module.module_type:
+                                        continue
+                                        
+                                    # Get module's LCA parameters
+                                    module_params = models.LCAParams.objects.filter(
+                                        content_type=ContentType.objects.get_for_model(module.module_type),
+                                        object_id=module.module_type.pk
+                                    ).first()
+                                    
+                                    if not module_params:
+                                        continue
+                                        
+                                    # Check module tags and aggregate parameters
+                                    for tag in module.module_type.tags.all():
+                                        tag_name = tag.name.upper()
+                                        if tag_name == 'CPU' and module_params.parameters:
+                                            cpus.append(module_params.parameters)
+                                        elif tag_name == 'RAM' and module_params.parameters:
+                                            rams.append(module_params.parameters)
+                                        elif tag_name == 'SSD' and module_params.parameters:
+                                            ssds.append(module_params.parameters)
+                                        elif tag_name == 'GPU' and module_params.parameters:
+                                            gpus.append(module_params.parameters)
+                                        elif tag_name == 'HDD':
+                                            hdd_count += 1
+                                
+                                # Update parameters with aggregated component data
+                                if cpus:
+                                    instance.parameters['cpus'] = cpus
+                                if rams:
+                                    instance.parameters['rams'] = rams
+                                if ssds:
+                                    instance.parameters['ssd_disks'] = ssds
+                                if gpus:
+                                    instance.parameters['dedicated_graphics_cards'] = gpus
+                                if hdd_count > 0:
+                                    instance.parameters['hdd_disks'] = {'quantity': hdd_count}
                     elif hasattr(parent, 'instances'):  # It's a DeviceType
                         # Find first device of this type that has a role with LCA mapping
                         device = parent.instances.first()
