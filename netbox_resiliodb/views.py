@@ -107,6 +107,7 @@ class DeviceResilioListView(generic.ObjectListView):
     table = tables.DeviceResilioTable
     template_name = 'netbox_resiliodb/device_list.html'
     filterset = filtersets.DeviceResilioFilterSet
+    filterset_form = forms.DeviceResilioFilterForm
 
 class LCAParamsView(generic.ObjectView):
     queryset = models.LCAParams.objects.all()
