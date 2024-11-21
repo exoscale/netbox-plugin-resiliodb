@@ -4,7 +4,7 @@ from utilities.forms.fields import DynamicModelChoiceField
 from dcim.models import DeviceRole, Site, Region, Device
 from utilities.forms import FilterForm
 from .models import (
-    LCAType, Indicator, DeviceRoleLCATypeMapping, 
+    LCAType, Indicator, DeviceRoleLCATypeMapping,
     SiteCountryMapping, PluginSettings, LCAParams
 )
 
@@ -67,7 +67,7 @@ class LCAParamsForm(NetBoxModelForm):
 
 class DeviceResilioFilterForm(FilterForm):
     model = Device
-    
+
     site = DynamicModelChoiceField(
         queryset=Site.objects.all(),
         required=False
@@ -80,4 +80,8 @@ class DeviceResilioFilterForm(FilterForm):
         queryset=DeviceRole.objects.all(),
         required=False
     )
-    has_lca_params = forms.BooleanField(required=False)
+    #has_lca_params = forms.BooleanField(required=False)
+    has_lca_params = forms.MultipleChoiceField(
+        choices=[(True, "Yes"), (False, "No")],
+        required=False
+    )
