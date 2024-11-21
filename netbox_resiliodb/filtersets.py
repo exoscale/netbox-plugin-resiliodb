@@ -4,7 +4,6 @@ import django_filters
 from .forms import DeviceResilioFilterForm
 
 class DeviceResilioFilterSet(NetBoxModelFilterSet):
-    form = DeviceResilioFilterForm
     has_lca_params = django_filters.BooleanFilter(
         method='filter_has_lca_params',
         label='Has LCA Parameters'
