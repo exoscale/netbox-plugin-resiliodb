@@ -3,7 +3,7 @@ from netbox.views import generic
 from dcim.models import ModuleType, Device
 from dcim.filtersets import DeviceFilterSet
 from django.contrib.contenttypes.models import ContentType
-from . import models, tables, forms
+from . import models, tables, forms, filtersets
 from .cpu_data import CPUData
 
 class LCATypeListView(generic.ObjectListView):
