@@ -105,7 +105,7 @@ class PluginSettingsDeleteView(generic.ObjectDeleteView):
 class DeviceResilioListView(generic.ObjectListView):
     queryset = Device.objects.all()
     table = tables.DeviceResilioTable
-    #template_name = 'generic/device_list.html'
+    template_name = 'netbox_resiliodb/device_list.html'
     filterset = filtersets.DeviceResilioFilterSet
     filterset_form = forms.DeviceResilioFilterForm
 
