@@ -70,8 +70,11 @@ class DeviceResilioTable(NetBoxTable):
     site = tables.Column(
         linkify=True
     )
+    def get_region(self, record):
+        return record.site.region if record.site else None
+
     region = tables.Column(
-        accessor=lambda record: record.site.region if record.site else None,
+        accessor='site__region',
         linkify=True
     )
     has_lca_params = tables.BooleanColumn()
