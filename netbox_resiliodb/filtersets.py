@@ -16,6 +16,14 @@ class DeviceResilioFilterSet(NetBoxModelFilterSet):
             fields.extend(['region', 'region_id'])
 
     def filter_has_lca_params(self, queryset, name, value):
+        from django.contrib.contenttypes.models import ContentType
+        from .models import LCAParams
+        
+        content_type = ContentType.objects.get_for_model(Device)
+        device_ids_with_params = LCAParams.objects.filter(
+            content_type=content_type
+        ).values_list('object_id', flat=True)
+        
         if value:
-            return queryset.filter(lcaparams__isnull=False)
-        return queryset.filter(lcaparams__isnull=True)
+            return queryset.filter(id__in=device_ids_with_params)
+        return queryset.exclude(id__in=device_ids_with_params)
