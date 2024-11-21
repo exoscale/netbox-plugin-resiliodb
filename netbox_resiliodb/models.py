@@ -7,6 +7,8 @@ from netbox.models import NetBoxModel
 from utilities.choices import ChoiceSet
 from dcim.models import DeviceType, ModuleType, DeviceRole, Site, Region, Device
 
+from django.core.exceptions import ObjectDoesNotExist
+
 class LCAType(NetBoxModel):
     """
     Represents different Life Cycle Assessment (LCA) types corresponding to ResilioDB endpoints.
@@ -47,7 +49,7 @@ class DeviceRoleLCATypeMapping(NetBoxModel):
     """
     Maps NetBox Device Roles to LCA Types.
     """
-    device_role = models.ForeignKey(DeviceRole, on_delete=models.CASCADE)
+    device_role = models.ForeignKey(DeviceRole, on_delete=models.CASCADE, related_name='lca_mappings')
     lca_type = models.ForeignKey(LCAType, on_delete=models.CASCADE)
 
     class Meta:
@@ -205,3 +207,24 @@ class PluginSettings(NetBoxModel):
 
     def get_absolute_url(self):
         return reverse('plugins:netbox_resiliodb:pluginsettings', args=[self.pk])
+
+
+# Mokey Patching Zone
+#
+def get_lca_type(self):
+    try:
+        mapping = DeviceRoleLCATypeMapping.objects.get(device_role=self.role)
+        return mapping.lca_type
+    except ObjectDoesNotExist:
+        return None
+
+Device.get_lca_type = get_lca_type
+
+def has_lca_params(self):
+    content_type = ContentType.objects.get_for_model(self)
+    return LCAParams.objects.filter(
+        content_type=content_type,
+        object_id=self.pk
+    ).exists()
+
+Device.has_lca_params = has_lca_params

@@ -6,7 +6,7 @@ from .models import LCAType, Indicator, DeviceRoleLCATypeMapping, SiteCountryMap
 class LCATypeTable(NetBoxTable):
     name = tables.Column(linkify=True)
     resilio_endpoint = tables.Column()
-    
+
     class Meta(NetBoxTable.Meta):
         model = LCAType
         fields = ('pk', 'id', 'name', 'resilio_endpoint', 'description', 'actions')
@@ -14,7 +14,7 @@ class LCATypeTable(NetBoxTable):
 
 class IndicatorTable(NetBoxTable):
     code = tables.Column(linkify=True)
-    
+
     class Meta(NetBoxTable.Meta):
         model = Indicator
         fields = ('pk', 'id', 'code', 'name', 'unit', 'description', 'actions')
@@ -23,7 +23,7 @@ class IndicatorTable(NetBoxTable):
 class DeviceRoleLCATypeMappingTable(NetBoxTable):
     device_role = tables.Column(linkify=True)
     lca_type = tables.Column(linkify=True)
-    
+
     class Meta(NetBoxTable.Meta):
         model = DeviceRoleLCATypeMapping
         fields = ('pk', 'id', 'device_role', 'lca_type', 'actions')
@@ -32,7 +32,7 @@ class DeviceRoleLCATypeMappingTable(NetBoxTable):
 class SiteCountryMappingTable(NetBoxTable):
     site = tables.Column(linkify=True)
     region = tables.Column(linkify=True)
-    
+
     class Meta(NetBoxTable.Meta):
         model = SiteCountryMapping
         fields = ('pk', 'id', 'site', 'region', 'country', 'actions')
@@ -40,12 +40,12 @@ class SiteCountryMappingTable(NetBoxTable):
 
 class PluginSettingsTable(NetBoxTable):
     api_url = tables.Column(linkify=True)
-    
+
     class Meta(NetBoxTable.Meta):
         model = PluginSettings
-        fields = ('pk', 'id', 'api_url', 'api_version', 'default_usage_period_hours', 
+        fields = ('pk', 'id', 'api_url', 'api_version', 'default_usage_period_hours',
                  'default_power_watts', 'resync_on_api_version_change', 'actions')
-        default_columns = ('api_url', 'api_version', 'default_usage_period_hours', 
+        default_columns = ('api_url', 'api_version', 'default_usage_period_hours',
                          'default_power_watts')
 
 class DeviceResilioTable(NetBoxTable):
@@ -53,20 +53,20 @@ class DeviceResilioTable(NetBoxTable):
         linkify=True
     )
     device_role = tables.Column(
-        linkify=True
+        linkify=True,
+        accessor="role"
     )
     def get_resilio_type(self, record):
-        if not record.device_role:
+        if not record.role:
             return None
         mapping = DeviceRoleLCATypeMapping.objects.filter(
-            device_role=record.device_role
+            device_role=record.role
         ).first()
         return mapping.lca_type if mapping else None
 
     resilio_type = tables.Column(
         verbose_name='Resilio Type',
-        linkify=True,
-        accessor=get_resilio_type
+        accessor="get_lca_type"
     )
     site = tables.Column(
         linkify=True
@@ -78,23 +78,14 @@ class DeviceResilioTable(NetBoxTable):
         accessor='site__region',
         linkify=True
     )
-    def get_has_lca_params(self, record):
-        from django.contrib.contenttypes.models import ContentType
-        from .models import LCAParams
-        content_type = ContentType.objects.get_for_model(record)
-        return LCAParams.objects.filter(
-            content_type=content_type,
-            object_id=record.pk
-        ).exists()
 
-    has_lca_params = tables.BooleanColumn(
-        accessor=get_has_lca_params,
-        verbose_name='Has LCA Params'
+    has_lca_params = tables.Column(
+        verbose_name='Has LCA Params',
+        accessor="has_lca_params"
     )
-
     class Meta(NetBoxTable.Meta):
         model = Device
-        fields = ('pk', 'id', 'name', 'device_role', 'resilio_type', 'site', 
+        fields = ('pk', 'id', 'name', 'device_role', 'resilio_type', 'site',
                  'region', 'has_lca_params')
-        default_columns = ('name', 'device_role', 'resilio_type', 'site', 
+        default_columns = ('name', 'device_role', 'resilio_type', 'site',
                          'region', 'has_lca_params')
