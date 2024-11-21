@@ -1,6 +1,7 @@
 import logging
 from netbox.views import generic
 from dcim.models import ModuleType, Device
+from dcim.filtersets import DeviceFilterSet
 from django.contrib.contenttypes.models import ContentType
 from . import models, tables, forms
 from .cpu_data import CPUData
@@ -105,7 +106,7 @@ class DeviceResilioListView(generic.ObjectListView):
     queryset = Device.objects.all()
     table = tables.DeviceResilioTable
     template_name = 'netbox_resiliodb/device_list.html'
-    filterset = filtersets.DeviceFilterSet
+    filterset = DeviceFilterSet
 
 class LCAParamsView(generic.ObjectView):
     queryset = models.LCAParams.objects.all()
