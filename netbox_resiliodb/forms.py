@@ -1,7 +1,8 @@
 from django import forms
 from netbox.forms import NetBoxModelForm
 from utilities.forms.fields import DynamicModelChoiceField
-from dcim.models import DeviceRole, Site, Region
+from dcim.models import DeviceRole, Site, Region, Device
+from utilities.forms import FilterForm
 from .models import (
     LCAType, Indicator, DeviceRoleLCATypeMapping, 
     SiteCountryMapping, PluginSettings, LCAParams
@@ -63,3 +64,19 @@ class LCAParamsForm(NetBoxModelForm):
         widgets = {
             'parameters': forms.Textarea,
         }
+
+class DeviceResilioFilterForm(FilterForm):
+    model = Device
+    
+    site = DynamicModelChoiceField(
+        queryset=Site.objects.all(),
+        required=False
+    )
+    region = DynamicModelChoiceField(
+        queryset=Region.objects.all(),
+        required=False
+    )
+    role = DynamicModelChoiceField(
+        queryset=DeviceRole.objects.all(),
+        required=False
+    )
