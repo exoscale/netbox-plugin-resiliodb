@@ -55,13 +55,17 @@ class DeviceResilioTable(NetBoxTable):
     device_role = tables.Column(
         linkify=True
     )
+    def get_resilio_type(self, record):
+        mapping = DeviceRoleLCATypeMapping.objects.filter(
+            device_role=record.device_role
+        ).first()
+        return mapping.lca_type if mapping else None
+
     resilio_type = tables.Column(
-        accessor=lambda record: DeviceRoleLCATypeMapping.objects.filter(
-            device_role=record.device_role
-        ).first().lca_type if DeviceRoleLCATypeMapping.objects.filter(
-            device_role=record.device_role
-        ).exists() else None,
-        linkify=True
+        accessor='device_role',
+        verbose_name='Resilio Type',
+        linkify=False,
+        order_by='device_role__name'
     )
     site = tables.Column(
         linkify=True
