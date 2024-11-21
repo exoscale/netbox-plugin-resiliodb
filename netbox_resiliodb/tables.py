@@ -1,5 +1,6 @@
 import django_tables2 as tables
 from netbox.tables import NetBoxTable, columns
+from dcim.models import Device
 from .models import LCAType, Indicator, DeviceRoleLCATypeMapping, SiteCountryMapping, PluginSettings
 
 class LCATypeTable(NetBoxTable):
@@ -46,3 +47,34 @@ class PluginSettingsTable(NetBoxTable):
                  'default_power_watts', 'resync_on_api_version_change', 'actions')
         default_columns = ('api_url', 'api_version', 'default_usage_period_hours', 
                          'default_power_watts')
+
+class DeviceResilioTable(NetBoxTable):
+    name = tables.Column(
+        linkify=True
+    )
+    device_role = tables.Column(
+        linkify=True
+    )
+    resilio_type = tables.Column(
+        accessor=lambda record: DeviceRoleLCATypeMapping.objects.filter(
+            device_role=record.device_role
+        ).first().lca_type if DeviceRoleLCATypeMapping.objects.filter(
+            device_role=record.device_role
+        ).exists() else None,
+        linkify=True
+    )
+    site = tables.Column(
+        linkify=True
+    )
+    region = tables.Column(
+        accessor=lambda record: record.site.region if record.site else None,
+        linkify=True
+    )
+    has_lca_params = tables.BooleanColumn()
+
+    class Meta(NetBoxTable.Meta):
+        model = Device
+        fields = ('pk', 'id', 'name', 'device_role', 'resilio_type', 'site', 
+                 'region', 'has_lca_params')
+        default_columns = ('name', 'device_role', 'resilio_type', 'site', 
+                         'region', 'has_lca_params')

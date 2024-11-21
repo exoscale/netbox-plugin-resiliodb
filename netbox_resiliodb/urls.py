@@ -50,4 +50,7 @@ urlpatterns = [
     path('lca-params/<int:pk>/edit/', views.LCAParamsEditView.as_view(), name='lcaparams_edit'),
     path('lca-params/<int:pk>/delete/', views.LCAParamsDeleteView.as_view(), name='lcaparams_delete'),
     path('lca-params/<int:pk>/changelog/', ObjectChangeLogView.as_view(), name='lcaparams_changelog', kwargs={'model': models.LCAParams}),
+
+    # Devices with ResilioDB info
+    path('devices/', views.DeviceResilioListView.as_view(), name='device_list'),
 ]

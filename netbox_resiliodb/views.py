@@ -101,6 +101,12 @@ class PluginSettingsDeleteView(generic.ObjectDeleteView):
         # Prevent access to delete view
         return redirect('plugins:netbox_resiliodb:pluginsettings', pk=1)
 
+class DeviceResilioListView(generic.ObjectListView):
+    queryset = Device.objects.all()
+    table = tables.DeviceResilioTable
+    template_name = 'netbox_resiliodb/device_list.html'
+    filterset = filtersets.DeviceFilterSet
+
 class LCAParamsView(generic.ObjectView):
     queryset = models.LCAParams.objects.all()
 
