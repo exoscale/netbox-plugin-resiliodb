@@ -80,3 +80,4 @@ class DeviceResilioFilterForm(FilterForm):
         queryset=DeviceRole.objects.all(),
         required=False
     )
+    has_lca_params = forms.BooleanField(required=False)
