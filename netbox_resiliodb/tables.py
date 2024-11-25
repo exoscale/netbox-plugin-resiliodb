@@ -83,9 +83,15 @@ class DeviceResilioTable(NetBoxTable):
         verbose_name='Has LCA Params',
         accessor="has_lca_params"
     )
+
+    device_type_has_lca_params = tables.Column(
+        verbose_name='DeviceType Has LCA Params',
+        accessor="device_type__has_lca_params"
+    )
+
     class Meta(NetBoxTable.Meta):
         model = Device
         fields = ('pk', 'id', 'name', 'device_role', 'resilio_type', 'site',
                  'region', 'has_lca_params')
         default_columns = ('name', 'device_role', 'resilio_type', 'site',
-                         'region', 'has_lca_params')
+                         'region', 'has_lca_params', 'device_type_has_lca_params')

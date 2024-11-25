@@ -228,3 +228,4 @@ def has_lca_params(self):
     ).exists()
 
 Device.has_lca_params = has_lca_params
+DeviceType.has_lca_params = has_lca_params

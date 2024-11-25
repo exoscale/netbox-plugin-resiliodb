@@ -80,8 +80,13 @@ class DeviceResilioFilterForm(FilterForm):
         queryset=DeviceRole.objects.all(),
         required=False
     )
-    #has_lca_params = forms.BooleanField(required=False)
+
     has_lca_params = forms.MultipleChoiceField(
+        choices=[(True, "Yes"), (False, "No")],
+        required=False
+    )
+
+    device_type_has_lca_params = forms.MultipleChoiceField(
         choices=[(True, "Yes"), (False, "No")],
         required=False
     )
