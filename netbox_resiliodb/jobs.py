@@ -11,7 +11,7 @@ class ResilioBulkSyncJob(JobRunner):
         from datetime import timedelta
         stale_jobs = cls.get_jobs().filter(
             status__in=['running', 'pending'],
-            created__lt=timezone.now() - timedelta(hours=1)  # Jobs older than 1 hour
+            #created__lt=timezone.now() - timedelta(hours=1)  # Jobs older than 1 hour
         )
         stale_jobs.update(status='failed', completed=timezone.now())
 
