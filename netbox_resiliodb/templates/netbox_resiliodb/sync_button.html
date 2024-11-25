@@ -25,9 +25,8 @@ function triggerSync() {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.job_id) {
-            // Start polling job status
-            pollJobStatus(data.job_id);
+        if (data.status === 'started' || data.status === 'running') {
+            pollSyncStatus();
         }
     })
     .catch(error => {
@@ -37,31 +36,32 @@ function triggerSync() {
     });
 }
 
-function pollJobStatus(jobId) {
+function pollSyncStatus() {
     const button = document.getElementById('resilio-sync-button');
     
-    fetch(`/api/extras/jobs/${jobId}/`)
+    fetch('/api/plugins/resiliodb/device-sync/status/')
         .then(response => response.json())
         .then(data => {
-            if (['completed', 'failed'].includes(data.status.value)) {
+            if (data.status === 'idle') {
                 button.disabled = false;
                 button.innerHTML = '<i class="mdi mdi-sync"></i> Sync with ResilioDB';
             } else {
-                // Continue polling
-                setTimeout(() => pollJobStatus(jobId), 2000);
+                button.disabled = true;
+                button.innerHTML = '<i class="mdi mdi-sync mdi-spin"></i> Sync in progress...';
+                setTimeout(pollSyncStatus, 2000);
             }
         });
 }
 
-// Check for running jobs on page load
-fetch('/api/plugins/resiliodb/device-sync/sync/')
+// Check initial sync status on page load
+fetch('/api/plugins/resiliodb/device-sync/status/')
     .then(response => response.json())
     .then(data => {
-        if (data.job_id) {
+        if (data.status === 'running') {
             const button = document.getElementById('resilio-sync-button');
             button.disabled = true;
             button.innerHTML = '<i class="mdi mdi-sync mdi-spin"></i> Sync in progress...';
-            pollJobStatus(data.job_id);
+            pollSyncStatus();
         }
     });
 </script>

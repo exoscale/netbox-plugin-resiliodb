@@ -48,20 +48,26 @@ class DeviceSyncViewSet(NetBoxModelViewSet):
     @action(detail=False, methods=['post'])
     def sync(self, request):
         device_id = request.data.get('device_id')
-
         running_jobs = ResilioBulkSyncJob.get_jobs()
 
         if running_jobs:
             return Response(
-                {"message": "Sync already in progress", "job_id": running_jobs[0].id},
+                {"status": "running"},
                 status=status.HTTP_409_CONFLICT
             )
 
         # Start new sync job
         if device_id:
             device = Device.objects.get(id=device_id)
-            job = ResilioBulkSyncJob.enqueue_once(instance=device)
+            ResilioBulkSyncJob.enqueue_once(instance=device)
         else:
-            job = ResilioBulkSyncJob.enqueue_once()
+            ResilioBulkSyncJob.enqueue_once()
 
-        return Response({"message": "Sync started", "job_id": job.id})
+        return Response({"status": "started"})
+
+    @action(detail=False, methods=['get'])
+    def status(self, request):
+        running_jobs = ResilioBulkSyncJob.get_jobs()
+        return Response({
+            "status": "running" if running_jobs else "idle"
+        })
