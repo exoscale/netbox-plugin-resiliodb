@@ -10,7 +10,8 @@ from .serializers import (
     DeviceRoleLCATypeMappingSerializer,
     SiteCountryMappingSerializer,
     LCAParamsSerializer,
-    PluginSettingsSerializer
+    PluginSettingsSerializer,
+    DeviceSyncSerializer
 )
 from ..jobs import ResilioBulkSyncJob
 
@@ -47,22 +48,20 @@ class DeviceSyncViewSet(NetBoxModelViewSet):
     @action(detail=False, methods=['post'])
     def sync(self, request):
         device_id = request.data.get('device_id')
-        
-        # Check if a sync job is already running for this device/bulk
-        job_filter = {'object_id': device_id} if device_id else {}
-        running_jobs = ResilioBulkSyncJob.get_jobs(**job_filter)
-        
+
+        running_jobs = ResilioBulkSyncJob.get_jobs()
+
         if running_jobs:
             return Response(
                 {"message": "Sync already in progress", "job_id": running_jobs[0].id},
                 status=status.HTTP_409_CONFLICT
             )
-        
+
         # Start new sync job
         if device_id:
             device = Device.objects.get(id=device_id)
             job = ResilioBulkSyncJob.enqueue_once(instance=device)
         else:
             job = ResilioBulkSyncJob.enqueue_once()
-            
+
         return Response({"message": "Sync started", "job_id": job.id})

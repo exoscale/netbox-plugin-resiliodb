@@ -3,6 +3,7 @@ from rest_framework import serializers
 from netbox.api.serializers import NetBoxModelSerializer, WritableNestedSerializer
 from dcim.api.nested_serializers import NestedDeviceRoleSerializer, NestedSiteSerializer, NestedRegionSerializer
 from .. import models
+from dcim.models import ModuleType, Device
 
 class LCATypeSerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(
