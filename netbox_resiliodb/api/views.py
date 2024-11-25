@@ -63,6 +63,8 @@ class DeviceSyncViewSet(NetBoxModelViewSet):
     @action(detail=False, methods=['post'])
     def sync(self, request):
         device_id = request.data.get('device_id')
+        filters = request.data.get('filters', {})
+        
         # Check for running jobs with status "running" or "pending"
         running_jobs = ResilioBulkSyncJob.get_jobs().filter(
             status__in=['running', 'pending']
@@ -79,7 +81,15 @@ class DeviceSyncViewSet(NetBoxModelViewSet):
             device = Device.objects.get(id=device_id)
             ResilioBulkSyncJob.enqueue_once(instance=device)
         else:
-            ResilioBulkSyncJob.enqueue_once()
+            # Apply filters to get the correct device queryset
+            from ..filtersets import DeviceResilioFilterSet
+            queryset = Device.objects.all()
+            filterset = DeviceResilioFilterSet(filters, queryset)
+            filtered_devices = filterset.qs
+            
+            # Enqueue each filtered device
+            for device in filtered_devices:
+                ResilioBulkSyncJob.enqueue_once(instance=device)
 
         return Response({"status": "started"})
 

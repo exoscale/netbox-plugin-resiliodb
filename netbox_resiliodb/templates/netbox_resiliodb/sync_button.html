@@ -13,6 +13,13 @@ function triggerSync() {
     button.disabled = true;
     button.innerHTML = '<i class="mdi mdi-sync mdi-spin"></i> Sync in progress...';
 
+    // Get all current filter parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const filterParams = {};
+    urlParams.forEach((value, key) => {
+        filterParams[key] = value;
+    });
+
     fetch('/api/plugins/resiliodb/device-sync/sync/', {
         method: 'POST',
         headers: {
@@ -20,7 +27,8 @@ function triggerSync() {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            device_id: '{{ object.id }}'
+            device_id: '{{ object.id }}',
+            filters: filterParams
         })
     })
     .then(response => response.json())
