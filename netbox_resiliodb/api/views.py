@@ -63,6 +63,8 @@ class DeviceSyncViewSet(NetBoxModelViewSet):
     @action(detail=False, methods=['post'])
     def sync(self, request):
         device_id = request.data.get('device_id')
+        selected_devices = request.data.get('selected_devices', [])
+        select_all = request.data.get('select_all', False)
         filters = request.data.get('filters', {})
         
         # Check for running jobs with status "running" or "pending"
@@ -76,12 +78,18 @@ class DeviceSyncViewSet(NetBoxModelViewSet):
                 status=status.HTTP_409_CONFLICT
             )
 
-        # Start new sync job
+        # Start new sync job based on context
         if device_id:
+            # Single device from detail view
             device = Device.objects.get(id=device_id)
             ResilioBulkSyncJob.enqueue_once(instance=device)
-        else:
-            # Apply filters to get the correct device queryset
+        elif selected_devices:
+            # Selected devices from list view
+            for device_id in selected_devices:
+                device = Device.objects.get(id=device_id)
+                ResilioBulkSyncJob.enqueue_once(instance=device)
+        elif select_all:
+            # All devices (with filters) from list view
             from ..filtersets import DeviceResilioFilterSet
             queryset = Device.objects.all()
             filterset = DeviceResilioFilterSet(filters, queryset)

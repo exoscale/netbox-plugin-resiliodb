@@ -20,6 +20,16 @@ function triggerSync() {
         filterParams[key] = value;
     });
 
+    // Get selected devices if we're on the list view
+    const selectedDevices = [];
+    const checkboxes = document.querySelectorAll('input[name="pk"]:checked');
+    checkboxes.forEach(checkbox => {
+        selectedDevices.push(checkbox.value);
+    });
+
+    // Check if "select all" is enabled
+    const selectAll = document.querySelector('input[name="_all"]:checked') !== null;
+
     fetch('/api/plugins/resiliodb/device-sync/sync/', {
         method: 'POST',
         headers: {
@@ -27,7 +37,9 @@ function triggerSync() {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            device_id: '{{ object.id }}',
+            device_id: '{{ object.id }}' || null,
+            selected_devices: selectedDevices,
+            select_all: selectAll,
             filters: filterParams
         })
     })
