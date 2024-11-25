@@ -62,3 +62,10 @@ class PluginSettingsSerializer(NetBoxModelSerializer):
         model = models.PluginSettings
         fields = ('id', 'url', 'api_url', 'api_key', 'api_version', 'default_usage_period_hours',
                  'default_power_watts', 'resync_on_api_version_change', 'created', 'last_updated')
+
+class DeviceSyncSerializer(NetBoxModelSerializer):
+    device_id = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = Device
+        fields = ('device_id',)
