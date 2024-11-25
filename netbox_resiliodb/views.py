@@ -108,6 +108,30 @@ class DeviceResilioListView(generic.ObjectListView):
     template_name = 'netbox_resiliodb/device_list.html'
     filterset = filtersets.DeviceResilioFilterSet
     filterset_form = forms.DeviceResilioFilterForm
+    actions = ('bulk_sync',)
+
+from django.contrib import messages
+from django.shortcuts import redirect
+from django.urls import reverse
+
+class DeviceBulkSyncView(generic.BulkView):
+    queryset = Device.objects.all()
+    filterset = filtersets.DeviceResilioFilterSet
+    
+    def post(self, request):
+        model = self.queryset.model
+        if '_sync' in request.POST:
+            selected = self.queryset.filter(
+                pk__in=request.POST.getlist('pk')
+            )
+            count = selected.count()
+            
+            if count:
+                from .jobs import ResilioBulkSyncJob
+                ResilioBulkSyncJob.enqueue_once()
+                messages.success(request, f"Queued {count} devices for ResilioDB sync")
+            
+        return redirect(reverse('plugins:netbox_resiliodb:device_list'))
 
 class LCAParamsView(generic.ObjectView):
     queryset = models.LCAParams.objects.all()

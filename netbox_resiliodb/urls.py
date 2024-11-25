@@ -53,4 +53,5 @@ urlpatterns = [
 
     # Devices with ResilioDB info
     path('devices/', views.DeviceResilioListView.as_view(), name='device_list'),
+    path('devices/sync/', views.DeviceBulkSyncView.as_view(), name='device_bulk_sync'),
 ]
