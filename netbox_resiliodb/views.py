@@ -108,7 +108,9 @@ class DeviceResilioListView(generic.ObjectListView):
     template_name = 'netbox_resiliodb/device_list.html'
     filterset = filtersets.DeviceResilioFilterSet
     filterset_form = forms.DeviceResilioFilterForm
-    actions = ('bulk_sync',)
+    actions = {
+        'bulk_sync': 'Sync with ResilioDB'
+    }
 
 from django.contrib import messages
 from django.shortcuts import redirect
