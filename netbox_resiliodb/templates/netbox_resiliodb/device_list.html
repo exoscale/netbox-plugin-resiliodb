@@ -3,7 +3,5 @@
 {% load i18n %}
 
 {% block bulk_buttons %}
-    <button type="submit" name="_sync" formaction="{% url 'plugins:netbox_resiliodb:device_bulk_sync' %}" class="btn btn-primary btn-sm">
-        <i class="mdi mdi-sync"></i> Sync with ResilioDB
-    </button>
+    {% include 'netbox_resiliodb/sync_button.html' %}
 {% endblock bulk_buttons %}
