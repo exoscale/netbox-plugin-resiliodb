@@ -1,0 +1,63 @@
+{% load static %}
+
+<button type="button" 
+        class="btn btn-primary" 
+        id="resilio-sync-button"
+        onclick="triggerSync()">
+    <i class="mdi mdi-sync"></i> Sync with ResilioDB
+</button>
+
+<script>
+function triggerSync() {
+    const button = document.getElementById('resilio-sync-button');
+    button.disabled = true;
+    button.innerHTML = '<i class="mdi mdi-sync mdi-spin"></i> Sync in progress...';
+
+    fetch('/api/plugins/resiliodb/device-sync/sync/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.job_id) {
+            // Start polling job status
+            pollJobStatus(data.job_id);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        button.disabled = false;
+        button.innerHTML = '<i class="mdi mdi-sync"></i> Sync with ResilioDB';
+    });
+}
+
+function pollJobStatus(jobId) {
+    const button = document.getElementById('resilio-sync-button');
+    
+    fetch(`/api/extras/jobs/${jobId}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (['completed', 'failed'].includes(data.status.value)) {
+                button.disabled = false;
+                button.innerHTML = '<i class="mdi mdi-sync"></i> Sync with ResilioDB';
+            } else {
+                // Continue polling
+                setTimeout(() => pollJobStatus(jobId), 2000);
+            }
+        });
+}
+
+// Check for running jobs on page load
+fetch('/api/plugins/resiliodb/device-sync/sync/')
+    .then(response => response.json())
+    .then(data => {
+        if (data.job_id) {
+            const button = document.getElementById('resilio-sync-button');
+            button.disabled = true;
+            button.innerHTML = '<i class="mdi mdi-sync mdi-spin"></i> Sync in progress...';
+            pollJobStatus(data.job_id);
+        }
+    });
+</script>

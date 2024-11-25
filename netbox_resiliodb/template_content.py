@@ -32,4 +32,10 @@ class ModuleTypeLCAParams(PluginTemplateExtension):
         return create_lcaparams_panel(self)
 
 
-template_extensions = [DeviceTypeLCAParams, DeviceLCAParams, ModuleTypeLCAParams]
+class DeviceSyncButton(PluginTemplateExtension):
+    model = 'dcim.device'
+
+    def buttons(self):
+        return self.render('netbox_resiliodb/sync_button.html')
+
+template_extensions = [DeviceTypeLCAParams, DeviceLCAParams, ModuleTypeLCAParams, DeviceSyncButton]

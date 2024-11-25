@@ -10,5 +10,6 @@ router.register('device-role-lca-mappings', views.DeviceRoleLCATypeMappingViewSe
 router.register('site-country-mappings', views.SiteCountryMappingViewSet)
 router.register('lca-params', views.LCAParamsViewSet)
 router.register('plugin-settings', views.PluginSettingsViewSet)
+router.register('device-sync', views.DeviceSyncViewSet, basename='device-sync')
 
 urlpatterns = router.urls
