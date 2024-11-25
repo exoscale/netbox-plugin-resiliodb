@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 from .. import models
+from dcim.models import Device
 from .serializers import (
     LCATypeSerializer,
     IndicatorSerializer,
@@ -41,6 +42,7 @@ from dcim.models import Device
 
 class DeviceSyncViewSet(NetBoxModelViewSet):
     queryset = Device.objects.all()
+    serializer_class = DeviceSyncSerializer
 
     @action(detail=False, methods=['post'])
     def sync(self, request):
