@@ -1,5 +1,6 @@
 from netbox.api.viewsets import NetBoxModelViewSet
 from rest_framework.decorators import action
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 from .. import models
@@ -39,7 +40,7 @@ class PluginSettingsViewSet(NetBoxModelViewSet):
     queryset = models.PluginSettings.objects.all()
     serializer_class = PluginSettingsSerializer
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], url_path='cleanup-jobs')
     def cleanup_jobs(self, request):
         from ..jobs import ResilioBulkSyncJob
         running_jobs = ResilioBulkSyncJob.get_jobs().filter(
