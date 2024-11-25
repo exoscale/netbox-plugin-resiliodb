@@ -123,14 +123,21 @@ class DeviceBulkSyncView(generic.BulkDeleteView):
     def post(self, request):
         model = self.queryset.model
         if '_sync' in request.POST:
-            selected = self.queryset.filter(
-                pk__in=request.POST.getlist('pk')
-            )
-            count = selected.count()
+            if request.POST.get('_all') == 'on':
+                # Apply filters from the request
+                filterset = self.filterset(request.GET, self.queryset)
+                selected = filterset.qs
+            else:
+                selected = self.queryset.filter(
+                    pk__in=request.POST.getlist('pk')
+                )
             
+            count = selected.count()
             if count:
                 from .jobs import ResilioBulkSyncJob
-                ResilioBulkSyncJob.enqueue_once(instance=selected)
+                # Enqueue each device individually
+                for device in selected:
+                    ResilioBulkSyncJob.enqueue_once(instance=device)
                 messages.success(request, f"Queued {count} devices for ResilioDB sync")
             
         return redirect(reverse('plugins:netbox_resiliodb:device_list'))
