@@ -39,6 +39,12 @@ class PluginSettingsViewSet(NetBoxModelViewSet):
     queryset = models.PluginSettings.objects.all()
     serializer_class = PluginSettingsSerializer
 
+    @action(detail=False, methods=['post'])
+    def cleanup_jobs(self, request):
+        from ..jobs import ResilioBulkSyncJob
+        ResilioBulkSyncJob.cleanup_stale_jobs()
+        return Response({"status": "success", "message": "Stale jobs cleaned up"})
+
 from dcim.models import Device
 
 class DeviceSyncViewSet(NetBoxModelViewSet):

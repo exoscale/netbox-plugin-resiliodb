@@ -33,9 +33,39 @@
       </div>
     </div>
     <div class="col col-md-6">
+      <div class="card">
+        <h5 class="card-header">Maintenance</h5>
+        <div class="card-body">
+          <button type="button" class="btn btn-warning" onclick="cleanupJobs()">
+            <i class="mdi mdi-broom"></i> Cleanup Stale Jobs
+          </button>
+        </div>
+      </div>
       {% include 'inc/panels/custom_fields.html' %}
       {% include 'inc/panels/tags.html' %}
       {% include 'inc/panels/comments.html' %}
     </div>
   </div>
+
+<script>
+function cleanupJobs() {
+    fetch('/api/plugins/resiliodb/plugin-settings/cleanup-jobs/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Stale jobs cleaned up successfully');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error cleaning up stale jobs');
+    });
+}
+</script>
 {% endblock content %}
