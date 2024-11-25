@@ -14,4 +14,5 @@ class NetBoxResilioDBConfig(PluginConfig):
         # Register template directory
         self.template_dir = str(Path(__file__).parent / 'templates')
 
+
 config = NetBoxResilioDBConfig

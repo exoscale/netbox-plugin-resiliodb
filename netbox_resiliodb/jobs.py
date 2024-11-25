@@ -1,4 +1,5 @@
 from netbox.jobs import JobRunner
+import time
 
 class ResilioBulkSyncJob(JobRunner):
     class Meta:
@@ -16,19 +17,12 @@ class ResilioBulkSyncJob(JobRunner):
         stale_jobs.update(status='failed', completed=timezone.now())
 
     def run(self, *args, **kwargs):
-        # Clean up stale jobs before starting new one
-        self.cleanup_stale_jobs()
         device = self.job.object
 
         if device:
-            self.log_info(f"Starting ResilioDB sync for device {device.name}...")
+            msg = f"Starting ResilioDB sync for device {device.name}..."
+            print(msg)
             # Simulate single device sync
-            import time
-            time.sleep(2)
-            self.log_success(f"ResilioDB sync completed for device {device.name}")
-        else:
-            self.log_info("Starting bulk ResilioDB sync...")
-            # Simulate bulk sync
-            import time
             time.sleep(5)
-            self.log_success("Bulk ResilioDB sync completed")
+            success_msg = f"ResilioDB sync completed for device {device.name}"
+            print(success_msg)

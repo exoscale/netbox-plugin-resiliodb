@@ -66,7 +66,7 @@ class DeviceSyncViewSet(NetBoxModelViewSet):
         selected_devices = request.data.get('selected_devices', [])
         select_all = request.data.get('select_all', False)
         filters = request.data.get('filters', {})
-        
+
         # Check for running jobs with status "running" or "pending"
         running_jobs = ResilioBulkSyncJob.get_jobs().filter(
             status__in=['running', 'pending']
@@ -82,22 +82,30 @@ class DeviceSyncViewSet(NetBoxModelViewSet):
         if device_id:
             # Single device from detail view
             device = Device.objects.get(id=device_id)
-            ResilioBulkSyncJob.enqueue_once(instance=device)
-        elif selected_devices:
-            # Selected devices from list view
-            for device_id in selected_devices:
-                device = Device.objects.get(id=device_id)
-                ResilioBulkSyncJob.enqueue_once(instance=device)
+            job = ResilioBulkSyncJob.enqueue_once(instance=device)
+            with open('/tmp/netbox_api_debug.log', 'a') as f:
+                f.write(f"Enqueued job for device {device.name}: {job}\n")
+                f.flush()
         elif select_all:
             # All devices (with filters) from list view
             from ..filtersets import DeviceResilioFilterSet
             queryset = Device.objects.all()
             filterset = DeviceResilioFilterSet(filters, queryset)
             filtered_devices = filterset.qs
-            
             # Enqueue each filtered device
             for device in filtered_devices:
-                ResilioBulkSyncJob.enqueue_once(instance=device)
+                job = ResilioBulkSyncJob.enqueue_once(instance=device)
+                with open('/tmp/netbox_api_debug.log', 'a') as f:
+                    f.write(f"Enqueued job for device {device.name}: {job}\n")
+                    f.flush()
+        elif selected_devices:
+            # Selected devices from list view
+            for device_id in selected_devices:
+                device = Device.objects.get(id=device_id)
+                job = ResilioBulkSyncJob.enqueue_once(instance=device)
+                with open('/tmp/netbox_api_debug.log', 'a') as f:
+                    f.write(f"Enqueued job for device {device.name}: {job}\n")
+                    f.flush()
 
         return Response({"status": "started"})
 
