@@ -39,5 +39,6 @@ class DeviceResilioFilterSet(NetBoxModelFilterSet):
             content_type=content_type
         ).values_list('object_id', flat=True)
 
-        # TODO: to finish, thi should return True if the parent has LCA type and Fales if it does not.
-        return False # (Dummy Value)
+        if value:
+            return queryset.filter(device_type_id__in=devicetype_ids_with_params)
+        return queryset.exclude(device_type_id__in=devicetype_ids_with_params)
