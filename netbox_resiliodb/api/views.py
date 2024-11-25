@@ -37,11 +37,19 @@ class PluginSettingsViewSet(NetBoxModelViewSet):
     queryset = models.PluginSettings.objects.all()
     serializer_class = PluginSettingsSerializer
 
+from dcim.models import Device
+
 class DeviceSyncViewSet(NetBoxModelViewSet):
+    queryset = Device.objects.all()
+
     @action(detail=False, methods=['post'])
     def sync(self, request):
-        # Check if a sync job is already running
-        running_jobs = ResilioBulkSyncJob.get_jobs()
+        device_id = request.data.get('device_id')
+        
+        # Check if a sync job is already running for this device/bulk
+        job_filter = {'object_id': device_id} if device_id else {}
+        running_jobs = ResilioBulkSyncJob.get_jobs(**job_filter)
+        
         if running_jobs:
             return Response(
                 {"message": "Sync already in progress", "job_id": running_jobs[0].id},
@@ -49,5 +57,10 @@ class DeviceSyncViewSet(NetBoxModelViewSet):
             )
         
         # Start new sync job
-        job = ResilioBulkSyncJob.enqueue_once()
+        if device_id:
+            device = Device.objects.get(id=device_id)
+            job = ResilioBulkSyncJob.enqueue_once(instance=device)
+        else:
+            job = ResilioBulkSyncJob.enqueue_once()
+            
         return Response({"message": "Sync started", "job_id": job.id})

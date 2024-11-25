@@ -6,9 +6,17 @@ class ResilioBulkSyncJob(JobRunner):
         description = "Synchronize device data with ResilioDB"
 
     def run(self, *args, **kwargs):
-        # Dummy implementation for now
-        self.log_info("Starting ResilioDB sync...")
-        # Simulate some work
-        import time
-        time.sleep(5)
-        self.log_success("ResilioDB sync completed")
+        device = self.job.object
+        
+        if device:
+            self.log_info(f"Starting ResilioDB sync for device {device.name}...")
+            # Simulate single device sync
+            import time
+            time.sleep(2)
+            self.log_success(f"ResilioDB sync completed for device {device.name}")
+        else:
+            self.log_info("Starting bulk ResilioDB sync...")
+            # Simulate bulk sync
+            import time
+            time.sleep(5)
+            self.log_success("Bulk ResilioDB sync completed")
