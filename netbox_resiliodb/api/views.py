@@ -48,7 +48,10 @@ class DeviceSyncViewSet(NetBoxModelViewSet):
     @action(detail=False, methods=['post'])
     def sync(self, request):
         device_id = request.data.get('device_id')
-        running_jobs = ResilioBulkSyncJob.get_jobs()
+        # Check for running jobs with status "running" or "pending"
+        running_jobs = ResilioBulkSyncJob.get_jobs().filter(
+            status__in=['running', 'pending']
+        )
 
         if running_jobs:
             return Response(
@@ -67,7 +70,10 @@ class DeviceSyncViewSet(NetBoxModelViewSet):
 
     @action(detail=False, methods=['get'])
     def status(self, request):
-        running_jobs = ResilioBulkSyncJob.get_jobs()
+        # Check only for actually running jobs
+        running_jobs = ResilioBulkSyncJob.get_jobs().filter(
+            status__in=['running', 'pending']
+        )
         return Response({
             "status": "running" if running_jobs else "idle"
         })
