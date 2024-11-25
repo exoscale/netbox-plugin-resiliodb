@@ -114,7 +114,7 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse
 
-class DeviceBulkSyncView(generic.BulkView):
+class DeviceBulkSyncView(generic.BulkDeleteView):
     queryset = Device.objects.all()
     filterset = filtersets.DeviceResilioFilterSet
     
@@ -128,7 +128,7 @@ class DeviceBulkSyncView(generic.BulkView):
             
             if count:
                 from .jobs import ResilioBulkSyncJob
-                ResilioBulkSyncJob.enqueue_once()
+                ResilioBulkSyncJob.enqueue_once(instance=selected)
                 messages.success(request, f"Queued {count} devices for ResilioDB sync")
             
         return redirect(reverse('plugins:netbox_resiliodb:device_list'))
