@@ -42,7 +42,15 @@ class PluginSettingsViewSet(NetBoxModelViewSet):
     @action(detail=False, methods=['post'])
     def cleanup_jobs(self, request):
         from ..jobs import ResilioBulkSyncJob
+        running_jobs = ResilioBulkSyncJob.get_jobs().filter(
+            status__in=['running', 'pending']
+        )
+        print(running_jobs)
         ResilioBulkSyncJob.cleanup_stale_jobs()
+        running_jobs = ResilioBulkSyncJob.get_jobs().filter(
+            status__in=['running', 'pending']
+        )
+        print(running_jobs)
         return Response({"status": "success", "message": "Stale jobs cleaned up"})
 
 from dcim.models import Device
@@ -80,6 +88,7 @@ class DeviceSyncViewSet(NetBoxModelViewSet):
         running_jobs = ResilioBulkSyncJob.get_jobs().filter(
             status__in=['running', 'pending']
         )
+        print(running_jobs)
         return Response({
             "status": "running" if running_jobs else "idle"
         })

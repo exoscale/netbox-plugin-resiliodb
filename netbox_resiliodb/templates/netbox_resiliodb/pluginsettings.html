@@ -1,71 +1,72 @@
-{% extends 'generic/object.html' %}
-{% load render_table from django_tables2 %}
-
+{% extends 'generic/object.html' %} {% load render_table from django_tables2 %}
 {% block content %}
-  <div class="row mb-3">
+<div class="row mb-3">
     <div class="col col-md-6">
-      <div class="card">
-        <h5 class="card-header">Plugin Settings</h5>
-        <div class="card-body">
-          <table class="table table-hover attr-table">
-            <tr>
-              <th scope="row">API URL</th>
-              <td>{{ object.api_url }}</td>
-            </tr>
-            <tr>
-              <th scope="row">API Version</th>
-              <td>{{ object.api_version }}</td>
-            </tr>
-            <tr>
-              <th scope="row">Default Usage Period (hours)</th>
-              <td>{{ object.default_usage_period_hours }}</td>
-            </tr>
-            <tr>
-              <th scope="row">Default Power (watts)</th>
-              <td>{{ object.default_power_watts }}</td>
-            </tr>
-            <tr>
-              <th scope="row">Resync on API Version Change</th>
-              <td>{{ object.resync_on_api_version_change }}</td>
-            </tr>
-          </table>
+        <div class="card">
+            <h5 class="card-header">Plugin Settings</h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <th scope="row">API URL</th>
+                        <td>{{ object.api_url }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">API Version</th>
+                        <td>{{ object.api_version }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Default Usage Period (hours)</th>
+                        <td>{{ object.default_usage_period_hours }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Default Power (watts)</th>
+                        <td>{{ object.default_power_watts }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Resync on API Version Change</th>
+                        <td>{{ object.resync_on_api_version_change }}</td>
+                    </tr>
+                </table>
+            </div>
         </div>
-      </div>
     </div>
     <div class="col col-md-6">
-      <div class="card">
-        <h5 class="card-header">Maintenance</h5>
-        <div class="card-body">
-          <button type="button" class="btn btn-warning" onclick="cleanupJobs()">
-            <i class="mdi mdi-broom"></i> Cleanup Stale Jobs
-          </button>
+        <div class="card">
+            <h5 class="card-header">Maintenance</h5>
+            <div class="card-body">
+                <button
+                    type="button"
+                    class="btn btn-warning"
+                    onclick="cleanupJobs()"
+                >
+                    <i class="mdi mdi-broom"></i> Cleanup Stale Jobs
+                </button>
+            </div>
         </div>
-      </div>
-      {% include 'inc/panels/custom_fields.html' %}
-      {% include 'inc/panels/tags.html' %}
-      {% include 'inc/panels/comments.html' %}
+        {% include 'inc/panels/custom_fields.html' %} {% include
+        'inc/panels/tags.html' %} {% include 'inc/panels/comments.html' %}
     </div>
-  </div>
+</div>
 
 <script>
-function cleanupJobs() {
-    fetch('/api/plugins/resiliodb/plugin-settings/cleanup-jobs/', {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            alert('Stale jobs cleaned up successfully');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error cleaning up stale jobs');
-    });
-}
+    function cleanupJobs() {
+        fetch("/api/plugins/resiliodb/plugin-settings/cleanup-jobs/", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/json",
+            },
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.status === "success") {
+                    alert("Stale jobs cleaned up successfully");
+                }
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                alert("Error cleaning up stale jobs");
+            });
+    }
 </script>
 {% endblock content %}
