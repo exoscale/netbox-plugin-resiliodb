@@ -415,11 +415,6 @@ A background job that can be triggered to synchronize environmental impact data 
 - **Navigation:**
   - Add plugin menu items for accessing management pages.
 
-### Permissions
-
-- **Access Control:**
-  - Leverage NetBox's permission system to control access to plugin features.
-  - Define custom permissions if necessary.
 
 ---
 
