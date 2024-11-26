@@ -16,11 +16,14 @@ def create_lcaparams_panel(self):
 def create_lcafootprint_panel(self):
     try:
         impact_data = []
+        gwp_data = None
+        wu_data = None
+        
         if hasattr(self.context['object'], 'lca_impact_data'):
             lca_data = self.context['object'].lca_impact_data
             if lca_data:
                 for value in lca_data.indicator_values.all():
-                    impact_data.append({
+                    data = {
                         'indicator': value.indicator.code,
                         'unit': value.indicator.unit,
                         'total': value.total_value,
@@ -30,7 +33,14 @@ def create_lcafootprint_panel(self):
                             'USE': value.USE or 0,
                             'EOL': value.EOL or 0
                         }
-                    })
+                    }
+                    impact_data.append(data)
+                    
+                    # Store GWP and WU data separately
+                    if value.indicator.code == 'GWP':
+                        gwp_data = data
+                    elif value.indicator.code == 'WU':
+                        wu_data = data
 
         return self.render('netbox_resiliodb/lcafootprint_panel.html', extra_context={
             'object': self.context['object'],
