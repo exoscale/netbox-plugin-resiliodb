@@ -23,6 +23,15 @@
                             data: [
                                 {% for value in object.lca_impact_data.indicator_values.all %}
                                     {% if value.indicator.code in 'ADPe,ADPf,AP,GWP,IR,PM,WU'|split:',' %}
+                                        {% with total=value.EOL|default:0|add:value.USE|default:0|add:value.DIS|default:0|add:value.BLD|default:0 %}
+                                            {{ value.EOL|default:0|divisibleby:total }},
+                                        {% endwith %}
+                                    {% endif %}
+                                {% endfor %}
+                            ],
+                            _raw_data: [
+                                {% for value in object.lca_impact_data.indicator_values.all %}
+                                    {% if value.indicator.code in 'ADPe,ADPf,AP,GWP,IR,PM,WU'|split:',' %}
                                         {{ value.EOL|default:0 }},
                                     {% endif %}
                                 {% endfor %}
@@ -32,6 +41,15 @@
                         {
                             label: 'USE',
                             data: [
+                                {% for value in object.lca_impact_data.indicator_values.all %}
+                                    {% if value.indicator.code in 'ADPe,ADPf,AP,GWP,IR,PM,WU'|split:',' %}
+                                        {% with total=value.EOL|default:0|add:value.USE|default:0|add:value.DIS|default:0|add:value.BLD|default:0 %}
+                                            {{ value.USE|default:0|divisibleby:total }},
+                                        {% endwith %}
+                                    {% endif %}
+                                {% endfor %}
+                            ],
+                            _raw_data: [
                                 {% for value in object.lca_impact_data.indicator_values.all %}
                                     {% if value.indicator.code in 'ADPe,ADPf,AP,GWP,IR,PM,WU'|split:',' %}
                                         {{ value.USE|default:0 }},
@@ -45,6 +63,15 @@
                             data: [
                                 {% for value in object.lca_impact_data.indicator_values.all %}
                                     {% if value.indicator.code in 'ADPe,ADPf,AP,GWP,IR,PM,WU'|split:',' %}
+                                        {% with total=value.EOL|default:0|add:value.USE|default:0|add:value.DIS|default:0|add:value.BLD|default:0 %}
+                                            {{ value.DIS|default:0|divisibleby:total }},
+                                        {% endwith %}
+                                    {% endif %}
+                                {% endfor %}
+                            ],
+                            _raw_data: [
+                                {% for value in object.lca_impact_data.indicator_values.all %}
+                                    {% if value.indicator.code in 'ADPe,ADPf,AP,GWP,IR,PM,WU'|split:',' %}
                                         {{ value.DIS|default:0 }},
                                     {% endif %}
                                 {% endfor %}
@@ -54,6 +81,15 @@
                         {
                             label: 'BLD',
                             data: [
+                                {% for value in object.lca_impact_data.indicator_values.all %}
+                                    {% if value.indicator.code in 'ADPe,ADPf,AP,GWP,IR,PM,WU'|split:',' %}
+                                        {% with total=value.EOL|default:0|add:value.USE|default:0|add:value.DIS|default:0|add:value.BLD|default:0 %}
+                                            {{ value.BLD|default:0|divisibleby:total }},
+                                        {% endwith %}
+                                    {% endif %}
+                                {% endfor %}
+                            ],
+                            _raw_data: [
                                 {% for value in object.lca_impact_data.indicator_values.all %}
                                     {% if value.indicator.code in 'ADPe,ADPf,AP,GWP,IR,PM,WU'|split:',' %}
                                         {{ value.BLD|default:0 }},
@@ -72,13 +108,31 @@
                         },
                         y: {
                             stacked: true,
-                            beginAtZero: true
+                            beginAtZero: true,
+                            min: 0,
+                            max: 1,
+                            ticks: {
+                                format: {
+                                    style: 'percent'
+                                }
+                            }
                         }
                     },
                     plugins: {
                         title: {
                             display: true,
-                            text: 'Environmental Impact by Life Cycle Step'
+                            text: 'Environmental Impact Distribution by Life Cycle Step'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const datasetLabel = context.dataset.label;
+                                    const value = context.raw;
+                                    const total = context.dataset._total;
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${datasetLabel}: ${value.toFixed(3)} (${percentage}%)`;
+                                }
+                            }
                         }
                     }
                 }
