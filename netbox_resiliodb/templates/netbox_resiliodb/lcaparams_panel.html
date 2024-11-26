@@ -21,7 +21,7 @@
                         <table class="table table-hover">
                             <tr>
                                 <th>Parameters</th>
-                                <td><pre>{{ params.parameters|pprint }}</pre></td>
+                                <td>{{ params.parameters|render_json_as_table }}</td>
                             </tr>
                             <tr>
                                 <td colspan="2" class="text-end">
