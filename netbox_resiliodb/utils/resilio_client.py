@@ -18,7 +18,7 @@ class ResilioDBClient:
         self.settings = PluginSettings.objects.first()
         if not self.settings:
             raise ValueError("ResilioDB plugin settings not configured")
-        
+
         self.base_url = self.settings.api_url.rstrip('/')
         self.api_key = self.settings.api_key
         self.api_version = self.settings.api_version
@@ -34,9 +34,9 @@ class ResilioDBClient:
     def _ensure_valid_token(self):
         """Ensure we have a valid access token, refresh if needed"""
         now = timezone.now()
-        
+
         # Check if token is still valid
-        if (self.settings.access_token and self.settings.access_token_expiry 
+        if (self.settings.access_token and self.settings.access_token_expiry
             and self.settings.access_token_expiry > now):
             return self.settings.access_token
 
@@ -48,14 +48,14 @@ class ResilioDBClient:
                 headers={'Content-Type': 'application/json'}
             )
             response.raise_for_status()
-            
+
             # Save new token
             self.settings.access_token = response.json()['accessToken']
             self.settings.access_token_expiry = now + timedelta(hours=23)  # 23 hours to be safe
             self.settings.save()
-            
+
             return self.settings.access_token
-            
+
         except Exception as e:
             logger.error(f"Failed to refresh ResilioDB access token: {str(e)}")
             raise
@@ -91,17 +91,17 @@ class ResilioDBClient:
     def get_footprint(self, lca_type: str, payload: dict) -> dict:
         """
         Get footprint data for a device configuration
-        
+
         Args:
             lca_type: LCA type endpoint (e.g. 'blade_server', 'rack_server')
             payload: Request payload matching the endpoint's schema
-        
+
         Returns:
             dict: Response data containing footprint results
         """
         # Compute request hash
         hash_value = self._compute_hash(lca_type, payload)
-        
+
         # Check cache first
         cached_response = self._get_cached_response(hash_value)
         if cached_response:
@@ -117,15 +117,17 @@ class ResilioDBClient:
                 headers=self._get_headers()
             )
             response.raise_for_status()
-            
-            response_data = response.json()
-            
+
+            response_data = {
+                "_raw_data": response.json()
+            }
+
             # Cache the response and return both response and cache entry
-            cache_entry = self._cache_response(hash_value, response_data)
+            cache_entry = self._cache_response(hash_value, response_data["_raw_data"])
             response_data['_cache_entry'] = cache_entry
-            
+
             return response_data
-            
+
         except Exception as e:
             logger.error(f"ResilioDB API request failed: {str(e)}")
             raise
