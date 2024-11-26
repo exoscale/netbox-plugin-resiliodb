@@ -22,10 +22,12 @@ class ResilioSyncJob(JobRunner):
         stale_jobs.update(status='failed', completed=timezone.now())
 
     def run(self, *args, **kwargs):
+        print("Running ResilioSyncJob")
         device = self.job.object
         if not device:
+            print("Device not found.")
             return
-
+        print(device)
         from .utils.lca_params import get_device_params
         from .utils.resilio_client import ResilioDBClient
         from .models import LCAImpactData, LCAImpactIndicatorValue, Indicator
@@ -33,7 +35,8 @@ class ResilioSyncJob(JobRunner):
         # Get device parameters
         device_params = get_device_params(device)
         if not device_params:
-            self.log_warning(f"No LCA type mapping found for device {device.name}")
+            #self.log_warning(f"No LCA type mapping found for device {device.name}")
+            print(f"No LCA type mapping found for device {device.name}")
             return
 
         # Prepare API request payload
@@ -43,24 +46,32 @@ class ResilioSyncJob(JobRunner):
         }
 
         try:
+            print("Init Client")
             # Initialize client and make request
             client = ResilioDBClient()
+            print("Client is inited")
+            print(device_params)
             response = client.get_footprint(
                 device_params['lca_type'],
                 payload
             )
+            print(response)
 
             # Get or create impact data record and assign cache entry
-            impact_data, _ = LCAImpactData.objects.get_or_create(device=device)
+            impact_data, _ = LCAImpactData.objects.get_or_create(device=device) # TOFIX : this line is crashing python somehow
+            print("Impact data created")
             impact_data.cache_entry = response['_cache_entry']
+            print("toto")
             impact_data.save()
+            print("saved")
 
             # Process results
             results = response['results']
             endpoint_results = results[device_params['lca_type']]
-
+            print("coucouc")
             # Create/update indicator values
             for indicator_code, total_value in endpoint_results['total'].items():
+                print(indicator_code)
                 indicator = Indicator.objects.filter(code=indicator_code).first()
                 if not indicator:
                     continue
@@ -83,9 +94,9 @@ class ResilioSyncJob(JobRunner):
                         'EOL': eol
                     }
                 )
-
-            self.log_success(f"Successfully synced impact data for device {device.name}")
+            print("Success")
 
         except Exception as e:
-            self.log_failure(f"Failed to sync impact data for device {device.name}: {str(e)}")
+            print("error")
+            print(e)
             raise

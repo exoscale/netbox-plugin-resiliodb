@@ -126,7 +126,7 @@ def get_device_params(device):
 
     if device_params and device_params.parameters:
         return {
-            'lca_type': mapping.lca_type,
+            'lca_type': mapping.lca_type.resilio_endpoint,
             'params': device_params.parameters
         }
 

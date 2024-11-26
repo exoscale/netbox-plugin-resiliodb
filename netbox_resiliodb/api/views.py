@@ -69,7 +69,7 @@ class DeviceSyncViewSet(NetBoxModelViewSet):
 
         # Check for running jobs with status "running" or "pending"
         running_jobs = ResilioSyncJob.get_jobs().filter(
-            status__in=['running', 'pending']
+            status__in=['running']
         )
 
         if running_jobs:
@@ -113,9 +113,8 @@ class DeviceSyncViewSet(NetBoxModelViewSet):
     def status(self, request):
         # Check only for actually running jobs
         running_jobs = ResilioSyncJob.get_jobs().filter(
-            status__in=['running', 'pending']
+            status__in=['running']
         )
-        print(running_jobs)
         return Response({
             "status": "running" if running_jobs else "idle"
         })
