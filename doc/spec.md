@@ -201,6 +201,8 @@ class PluginSettings(models.Model):
     api_url = models.URLField()
     api_key = models.CharField(max_length=255)
     api_version = models.CharField(max_length=20)
+    access_token = models.CharField(max_length=255, blank=True, null=True)
+    access_token_expiry = models.DateTimeField(blank=True, null=True)
     default_usage_period_hours = models.FloatField(default=43800)  # e.g., 5 years × 365 days × 24 hours
     default_power_watts = models.FloatField(default=100)
     resync_on_api_version_change = models.BooleanField(default=True)
