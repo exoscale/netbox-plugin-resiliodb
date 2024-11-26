@@ -1,5 +1,10 @@
 from netbox.jobs import JobRunner
 import time
+import logging
+
+logger = logging.getLogger(__name__)
+
+__all__ = ['ResilioSyncJob']
 
 class ResilioSyncJob(JobRunner):
     class Meta:
