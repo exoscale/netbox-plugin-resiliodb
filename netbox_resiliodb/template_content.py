@@ -45,7 +45,9 @@ def create_lcafootprint_panel(self):
         return self.render('netbox_resiliodb/lcafootprint_panel.html', extra_context={
             'object': self.context['object'],
             'request': self.context['request'],
-            'impact_data': impact_data
+            'impact_data': impact_data,
+            'gwp_data': gwp_data,
+            'wu_data': wu_data
         })
     except Exception as e:
         logging.error(f"Error rendering LCA params panel: {str(e)}")
