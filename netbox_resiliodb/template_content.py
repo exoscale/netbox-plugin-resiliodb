@@ -17,7 +17,7 @@ class DeviceTypeLCAParams(PluginTemplateExtension):
     model = 'dcim.devicetype'
 
     def right_page(self):
-        return create_lcaparams_panel(self)
+        return create_lcaparams_panel(self) + self.render('netbox_resiliodb/lcafootprint_panel.html')
 
 class DeviceLCAParams(PluginTemplateExtension):
     model = 'dcim.device'

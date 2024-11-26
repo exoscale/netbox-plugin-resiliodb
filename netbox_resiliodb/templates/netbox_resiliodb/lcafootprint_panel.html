@@ -1,0 +1,87 @@
+{% load helpers %}
+{% load perms %}
+{% if perms.netbox_resiliodb.view_lcaimpactdata %}
+    {% load i18n %}
+    <div class="card mb-3">
+        <h5 class="card-header">
+            {% trans "LCA Footprint" %}
+        </h5>
+        <div class="card-body">
+            {% if object.lca_impact_data %}
+                <canvas id="lcaChart"></canvas>
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script>
+                    const ctx = document.getElementById('lcaChart');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: [
+                                {% for value in object.lca_impact_data.indicator_values.all %}
+                                    '{{ value.indicator.code }}',
+                                {% endfor %}
+                            ],
+                            datasets: [
+                                {
+                                    label: 'EOL',
+                                    data: [
+                                        {% for value in object.lca_impact_data.indicator_values.all %}
+                                            {{ value.EOL|default:0 }},
+                                        {% endfor %}
+                                    ],
+                                    backgroundColor: '#76B947'
+                                },
+                                {
+                                    label: 'USE',
+                                    data: [
+                                        {% for value in object.lca_impact_data.indicator_values.all %}
+                                            {{ value.USE|default:0 }},
+                                        {% endfor %}
+                                    ],
+                                    backgroundColor: '#2E5520'
+                                },
+                                {
+                                    label: 'DIS',
+                                    data: [
+                                        {% for value in object.lca_impact_data.indicator_values.all %}
+                                            {{ value.DIS|default:0 }},
+                                        {% endfor %}
+                                    ],
+                                    backgroundColor: '#FFF4BD'
+                                },
+                                {
+                                    label: 'BLD',
+                                    data: [
+                                        {% for value in object.lca_impact_data.indicator_values.all %}
+                                            {{ value.BLD|default:0 }},
+                                        {% endfor %}
+                                    ],
+                                    backgroundColor: '#FFED83'
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                x: {
+                                    stacked: true
+                                },
+                                y: {
+                                    stacked: true,
+                                    beginAtZero: true
+                                }
+                            },
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Environmental Impact by Life Cycle Step'
+                                }
+                            }
+                        }
+                    });
+                </script>
+            {% else %}
+                <span class="text-muted">No LCA impact data available</span>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}
