@@ -45,7 +45,7 @@ class ResilioDBClient:
             # Configure session without system proxy
             session = requests.Session()
             session.trust_env = False  # Don't use system proxy settings
-            
+
             response = session.post(
                 f"{self.base_url}/api/login",
                 json={"secretAccessToken": self.api_key},
@@ -79,7 +79,7 @@ class ResilioDBClient:
         """Get cached response if available"""
         try:
             cache_entry = LCACache.objects.get(hash=hash_value)
-            return cache_entry.request_payload
+            return cache_entry
         except LCACache.DoesNotExist:
             return None
 
@@ -110,7 +110,7 @@ class ResilioDBClient:
         cached_response = self._get_cached_response(hash_value)
         if cached_response:
             logger.debug(f"Cache hit for hash {hash_value}")
-            return cached_response
+            return {"_cache_entry": cached_response}
 
         # Make API request
         try:
@@ -118,7 +118,7 @@ class ResilioDBClient:
             # Use session without system proxy
             session = requests.Session()
             session.trust_env = False
-            
+
             response = session.post(
                 endpoint,
                 json=payload,
@@ -146,7 +146,7 @@ class ResilioDBClient:
             # Use session without system proxy
             session = requests.Session()
             session.trust_env = False
-            
+
             response = session.get(
                 f"{self.base_url}/api/countries",
                 headers=self._get_headers()

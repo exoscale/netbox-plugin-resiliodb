@@ -71,12 +71,12 @@ class ResilioSyncJob(JobRunner):
                         cache_entry=response.get('_cache_entry')
                     )
                     print(f"Created new impact data record: {impact_data.id}")
-                
+
                 # Update cache entry
                 impact_data.cache_entry = response.get('_cache_entry')
                 impact_data.save()
                 print("Successfully saved impact data")
-                
+
             except Exception as e:
                 print(f"Error creating/updating impact data: {str(e)}")
                 print(f"Device info: id={device.id}, name={device.name}")
@@ -84,7 +84,7 @@ class ResilioSyncJob(JobRunner):
                 raise
 
             # Process results
-            results = response['results']
+            results = response['_cache_entry'].request_payload["results"]
             endpoint_results = results[device_params['lca_type']]
             print("coucouc")
             # Create/update indicator values
