@@ -45,9 +45,9 @@ class ResilioSyncJob(JobRunner):
                 payload
             )
 
-            # Get or create impact data record
+            # Get or create impact data record and assign cache entry
             impact_data, _ = LCAImpactData.objects.get_or_create(device=device)
-            impact_data.cache_entry = client.get_cache_entry() # TOFIX: get footprint should return the lca cache object and we should assign it to the impact data object.
+            impact_data.cache_entry = response['_cache_entry']
             impact_data.save()
 
             # Process results

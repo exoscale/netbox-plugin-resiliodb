@@ -79,9 +79,11 @@ class ResilioDBClient:
         except LCACache.DoesNotExist:
             return None
 
-    def _cache_response(self, hash_value: str, response_data: dict):
-        """Cache API response"""
-        LCACache.objects.create(
+    def _cache_response(self, hash_value: str, response_data: dict) -> LCACache:
+        """
+        Cache API response and return the cache entry
+        """
+        return LCACache.objects.create(
             hash=hash_value,
             request_payload=response_data
         )
@@ -118,8 +120,9 @@ class ResilioDBClient:
             
             response_data = response.json()
             
-            # Cache the response
-            self._cache_response(hash_value, response_data)
+            # Cache the response and return both response and cache entry
+            cache_entry = self._cache_response(hash_value, response_data)
+            response_data['_cache_entry'] = cache_entry
             
             return response_data
             
