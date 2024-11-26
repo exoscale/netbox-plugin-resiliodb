@@ -10,6 +10,9 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="detailed-tab" data-bs-toggle="tab" data-bs-target="#detailed" type="button" role="tab">Detailed Analysis</button>
             </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="table-tab" data-bs-toggle="tab" data-bs-target="#table" type="button" role="tab">Table View</button>
+            </li>
         </ul>
         
         <div class="tab-content pt-3">
@@ -39,7 +42,73 @@
             <div class="tab-pane fade" id="detailed" role="tabpanel">
                 <canvas id="lcaChart"></canvas>
             </div>
+            
+            <div class="tab-pane fade" id="table" role="tabpanel">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="indicatorTable">
+                        <thead>
+                            <tr>
+                                <th>Indicator</th>
+                                <th>Unit</th>
+                                <th>Total</th>
+                                <th>Building</th>
+                                <th>Distribution</th>
+                                <th>Use</th>
+                                <th>End of Life</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for data in impact_data %}
+                            <tr>
+                                <td>{{ data.indicator }}</td>
+                                <td>{{ data.unit }}</td>
+                                <td>{{ data.total|floatformat:2 }}</td>
+                                <td>{{ data.steps.BLD|floatformat:2 }}</td>
+                                <td>{{ data.steps.DIS|floatformat:2 }}</td>
+                                <td>{{ data.steps.USE|floatformat:2 }}</td>
+                                <td>{{ data.steps.EOL|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <button class="btn btn-sm btn-secondary mt-2" onclick="copyTableToClipboard()">
+                    Copy to Clipboard
+                </button>
+            </div>
         </div>
+        
+        <script>
+        function copyTableToClipboard() {
+            const table = document.getElementById('indicatorTable');
+            let text = '';
+            
+            // Headers
+            const headers = table.querySelectorAll('thead th');
+            headers.forEach((header, index) => {
+                text += header.textContent;
+                text += (index < headers.length - 1) ? '\t' : '\n';
+            });
+            
+            // Data rows
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                cells.forEach((cell, index) => {
+                    text += cell.textContent;
+                    text += (index < cells.length - 1) ? '\t' : '\n';
+                });
+            });
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Table copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy table:', err);
+                alert('Failed to copy table to clipboard');
+            });
+        }
+        </script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script>
             // GWP Pie Chart
