@@ -197,6 +197,8 @@ class PluginSettings(NetBoxModel):
     default_usage_period_hours = models.FloatField(default=43800)
     default_power_watts = models.FloatField(default=100)
     resync_on_api_version_change = models.BooleanField(default=True)
+    access_token = models.CharField(max_length=255, blank=True, null=True)
+    access_token_expiry = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         verbose_name = "Plugin Settings"
