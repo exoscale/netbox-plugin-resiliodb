@@ -34,7 +34,9 @@
                 
                 <div class="row">
                     <div class="col-md-8 offset-md-2">
-                        <canvas id="gwpPieChart"></canvas>
+                        <div style="height: 300px;">
+                            <canvas id="gwpPieChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -136,6 +138,7 @@
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         title: {
                             display: true,
