@@ -153,6 +153,27 @@ class LCAImpactData(NetBoxModel):
     def get_absolute_url(self):
         return reverse('plugins:netbox_resiliodb:lcaimpactdata', args=[self.pk])
 
+    def is_outdated(self):
+        """Check if the impact data is outdated by comparing cache hashes"""
+        from .utils.lca_params import get_device_lca_params
+        from .utils.resilio_client import ResilioDBClient
+
+        if not self.cache_entry:
+            return True
+
+        device_params = get_device_lca_params(self.device)
+        if not device_params or not device_params.get('lca_type'):
+            return True
+
+        # Compute hash for current params
+        client = ResilioDBClient()
+        current_hash = client._compute_hash(
+            device_params['lca_type'].resilio_endpoint,
+            {"assembly": False, "data": [device_params['params']]}
+        )
+
+        return current_hash != self.cache_entry.hash
+
 class LCAImpactIndicatorValue(NetBoxModel):
     """
     Stores indicator values per device, including per life cycle step.

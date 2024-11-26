@@ -105,8 +105,8 @@ def get_device_geography(device):
 
     return None
 
-def get_device_params(device):
-    """Get LCA parameters for a device"""
+def get_device_lca_params(device):
+    """Get LCA parameters and type for a device"""
     if not device.role:
         return None
 
@@ -118,7 +118,33 @@ def get_device_params(device):
     if not mapping or not mapping.lca_type:
         return None
 
-    # Initialize with default payload
+    # Get device-specific LCA params if they exist
+    device_params = models.LCAParams.objects.filter(
+        content_type=ContentType.objects.get_for_model(device),
+        object_id=device.pk
+    ).first()
+
+    if device_params and device_params.parameters:
+        return {
+            'lca_type': mapping.lca_type,
+            'params': device_params.parameters
+        }
+
+    # Get device type LCA params if they exist
+    device_type_params = None
+    if device.device_type:
+        device_type_params = models.LCAParams.objects.filter(
+            content_type=ContentType.objects.get_for_model(device.device_type),
+            object_id=device.device_type.pk
+        ).first()
+
+    if device_type_params and device_type_params.parameters:
+        return {
+            'lca_type': mapping.lca_type,
+            'params': device_type_params.parameters
+        }
+
+    # Use default payload from LCA type
     params = mapping.lca_type.default_payload or {}
 
     # Check if device is a server/workstation/laptop based on endpoint
@@ -133,7 +159,10 @@ def get_device_params(device):
     if geography and 'usage' in params:
         params['usage']['geography'] = geography
 
-    return params
+    return {
+        'lca_type': mapping.lca_type,
+        'params': params
+    }
 
 def get_device_type_params(device_type):
     """Get LCA parameters for a device type"""
