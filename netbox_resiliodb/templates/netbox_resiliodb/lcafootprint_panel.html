@@ -58,10 +58,10 @@
                             gwpData.steps.EOL
                         ],
                         backgroundColor: [
-                            '#FFF59D',
-                            '#FFF9C4',
-                            '#2E7D32',
-                            '#4CAF50'
+                            '#2196F3', // Blue for Building
+                            '#FF9800', // Orange for Distribution
+                            '#9C27B0', // Purple for Use
+                            '#F44336'  // Red for End of Life
                         ]
                     }]
                 },
@@ -95,25 +95,25 @@
                 {
                     label: 'EOL',
                     data: impact_data.map(d => (d.steps.EOL / d.total * 100).toFixed(1)),
-                    backgroundColor: '#4CAF50',
+                    backgroundColor: '#F44336', // Red for End of Life
                     stack: 'Stack 0',
                 },
                 {
                     label: 'USE',
                     data: impact_data.map(d => (d.steps.USE / d.total * 100).toFixed(1)),
-                    backgroundColor: '#2E7D32',
+                    backgroundColor: '#9C27B0', // Purple for Use
                     stack: 'Stack 0',
                 },
                 {
                     label: 'DIS',
                     data: impact_data.map(d => (d.steps.DIS / d.total * 100).toFixed(1)),
-                    backgroundColor: '#FFF9C4',
+                    backgroundColor: '#FF9800', // Orange for Distribution
                     stack: 'Stack 0',
                 },
                 {
                     label: 'BLD',
                     data: impact_data.map(d => (d.steps.BLD / d.total * 100).toFixed(1)),
-                    backgroundColor: '#FFF59D',
+                    backgroundColor: '#2196F3', // Blue for Building
                     stack: 'Stack 0',
                 }
             ];
