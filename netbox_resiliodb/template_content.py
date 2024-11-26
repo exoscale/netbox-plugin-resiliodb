@@ -13,17 +13,33 @@ def create_lcaparams_panel(self):
         logging.error(f"Error rendering LCA params panel: {str(e)}")
         return ""
 
+def create_lcafootprint_panel(self):
+    try:
+        return self.render('netbox_resiliodb/lcafootprint_panel.html', extra_context={
+            'object': self.context['object'],
+            'request': self.context['request']
+        })
+    except Exception as e:
+        logging.error(f"Error rendering LCA params panel: {str(e)}")
+        return ""
+
 class DeviceTypeLCAParams(PluginTemplateExtension):
     model = 'dcim.devicetype'
 
     def right_page(self):
-        return create_lcaparams_panel(self) + self.render('netbox_resiliodb/lcafootprint_panel.html')
+        return create_lcaparams_panel(self)
 
 class DeviceLCAParams(PluginTemplateExtension):
     model = 'dcim.device'
 
     def right_page(self):
         return create_lcaparams_panel(self)
+
+class DeviceFootprintParams(PluginTemplateExtension):
+    model = 'dcim.device'
+
+    def left_page(self):
+        return create_lcafootprint_panel(self)
 
 class ModuleTypeLCAParams(PluginTemplateExtension):
     model = 'dcim.moduletype'
@@ -38,4 +54,4 @@ class DeviceSyncButton(PluginTemplateExtension):
     def buttons(self):
         return self.render('netbox_resiliodb/sync_button.html')
 
-template_extensions = [DeviceTypeLCAParams, DeviceLCAParams, ModuleTypeLCAParams, DeviceSyncButton]
+template_extensions = [DeviceTypeLCAParams, DeviceLCAParams, ModuleTypeLCAParams, DeviceSyncButton, DeviceFootprintParams]
