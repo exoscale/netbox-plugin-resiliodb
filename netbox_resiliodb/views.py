@@ -119,7 +119,7 @@ from django.urls import reverse
 class DeviceBulkSyncView(generic.BulkDeleteView):
     queryset = Device.objects.all()
     filterset = filtersets.DeviceResilioFilterSet
-    
+
     def post(self, request):
         model = self.queryset.model
         if '_sync' in request.POST:
@@ -131,15 +131,15 @@ class DeviceBulkSyncView(generic.BulkDeleteView):
                 selected = self.queryset.filter(
                     pk__in=request.POST.getlist('pk')
                 )
-            
+
             count = selected.count()
             if count:
-                from .jobs import ResilioBulkSyncJob
+                from .jobs import ResilioSyncJob
                 # Enqueue each device individually
                 for device in selected:
-                    ResilioBulkSyncJob.enqueue_once(instance=device)
+                    ResilioSyncJob.enqueue_once(instance=device)
                 messages.success(request, f"Queued {count} devices for ResilioDB sync")
-            
+
         return redirect(reverse('plugins:netbox_resiliodb:device_list'))
 
 class LCAParamsView(generic.ObjectView):

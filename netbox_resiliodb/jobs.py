@@ -1,7 +1,7 @@
 from netbox.jobs import JobRunner
 import time
 
-class ResilioBulkSyncJob(JobRunner):
+class ResilioSyncJob(JobRunner):
     class Meta:
         name = "ResilioDB Sync"
         description = "Synchronize device data with ResilioDB"

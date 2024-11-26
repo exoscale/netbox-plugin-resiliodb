@@ -14,7 +14,7 @@ from .serializers import (
     PluginSettingsSerializer,
     DeviceSyncSerializer
 )
-from ..jobs import ResilioBulkSyncJob
+from ..jobs import ResilioSyncJob
 
 class LCATypeViewSet(NetBoxModelViewSet):
     queryset = models.LCAType.objects.all()
@@ -42,13 +42,13 @@ class PluginSettingsViewSet(NetBoxModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='cleanup-jobs')
     def cleanup_jobs(self, request):
-        from ..jobs import ResilioBulkSyncJob
-        running_jobs = ResilioBulkSyncJob.get_jobs().filter(
+        from ..jobs import ResilioSyncJob
+        running_jobs = ResilioSyncJob.get_jobs().filter(
             status__in=['running', 'pending']
         )
         print(running_jobs)
-        ResilioBulkSyncJob.cleanup_stale_jobs()
-        running_jobs = ResilioBulkSyncJob.get_jobs().filter(
+        ResilioSyncJob.cleanup_stale_jobs()
+        running_jobs = ResilioSyncJob.get_jobs().filter(
             status__in=['running', 'pending']
         )
         print(running_jobs)
@@ -68,7 +68,7 @@ class DeviceSyncViewSet(NetBoxModelViewSet):
         filters = request.data.get('filters', {})
 
         # Check for running jobs with status "running" or "pending"
-        running_jobs = ResilioBulkSyncJob.get_jobs().filter(
+        running_jobs = ResilioSyncJob.get_jobs().filter(
             status__in=['running', 'pending']
         )
 
@@ -82,7 +82,7 @@ class DeviceSyncViewSet(NetBoxModelViewSet):
         if device_id:
             # Single device from detail view
             device = Device.objects.get(id=device_id)
-            job = ResilioBulkSyncJob.enqueue_once(instance=device)
+            job = ResilioSyncJob.enqueue_once(instance=device)
             with open('/tmp/netbox_api_debug.log', 'a') as f:
                 f.write(f"Enqueued job for device {device.name}: {job}\n")
                 f.flush()
@@ -94,7 +94,7 @@ class DeviceSyncViewSet(NetBoxModelViewSet):
             filtered_devices = filterset.qs
             # Enqueue each filtered device
             for device in filtered_devices:
-                job = ResilioBulkSyncJob.enqueue_once(instance=device)
+                job = ResilioSyncJob.enqueue_once(instance=device)
                 with open('/tmp/netbox_api_debug.log', 'a') as f:
                     f.write(f"Enqueued job for device {device.name}: {job}\n")
                     f.flush()
@@ -102,7 +102,7 @@ class DeviceSyncViewSet(NetBoxModelViewSet):
             # Selected devices from list view
             for device_id in selected_devices:
                 device = Device.objects.get(id=device_id)
-                job = ResilioBulkSyncJob.enqueue_once(instance=device)
+                job = ResilioSyncJob.enqueue_once(instance=device)
                 with open('/tmp/netbox_api_debug.log', 'a') as f:
                     f.write(f"Enqueued job for device {device.name}: {job}\n")
                     f.flush()
@@ -112,7 +112,7 @@ class DeviceSyncViewSet(NetBoxModelViewSet):
     @action(detail=False, methods=['get'])
     def status(self, request):
         # Check only for actually running jobs
-        running_jobs = ResilioBulkSyncJob.get_jobs().filter(
+        running_jobs = ResilioSyncJob.get_jobs().filter(
             status__in=['running', 'pending']
         )
         print(running_jobs)
