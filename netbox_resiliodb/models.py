@@ -155,13 +155,13 @@ class LCAImpactData(NetBoxModel):
 
     def is_outdated(self):
         """Check if the impact data is outdated by comparing cache hashes"""
-        from .utils.lca_params import get_device_lca_params
+        from .utils.lca_params import get_device_params
         from .utils.resilio_client import ResilioDBClient
 
         if not self.cache_entry:
             return True
 
-        device_params = get_device_lca_params(self.device)
+        device_params = get_device_params(self.device)
         if not device_params or not device_params.get('lca_type'):
             return True
 

@@ -172,7 +172,8 @@ class LCAParamsEditView(generic.ObjectEditView):
                     if isinstance(parent, ModuleType):
                         instance.parameters = get_module_type_params(parent)
                     elif isinstance(parent, Device):
-                        instance.parameters = get_device_params(parent)
+                        param = get_device_params(parent)
+                        instance.parameters = param["params"]
                     elif hasattr(parent, 'instances'):  # DeviceType
                         instance.parameters = get_device_type_params(parent)
 

@@ -105,7 +105,7 @@ def get_device_geography(device):
 
     return None
 
-def get_device_lca_params(device):
+def get_device_params(device):
     """Get LCA parameters and type for a device"""
     if not device.role:
         return None
@@ -140,7 +140,7 @@ def get_device_lca_params(device):
 
     if device_type_params and device_type_params.parameters:
         return {
-            'lca_type': mapping.lca_type,
+            'lca_type': mapping.lca_type.resilio_endpoint,
             'params': device_type_params.parameters
         }
 
@@ -160,7 +160,7 @@ def get_device_lca_params(device):
         params['usage']['geography'] = geography
 
     return {
-        'lca_type': mapping.lca_type,
+        'lca_type': mapping.lca_type.resilio_endpoint,
         'params': params
     }
 
@@ -171,5 +171,5 @@ def get_device_type_params(device_type):
     if not device or not device.role:
         return None
 
-    device_params = get_device_lca_params(device)
+    device_params = get_device_params(device)
     return device_params['params'] if device_params else None

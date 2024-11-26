@@ -21,12 +21,12 @@ class ResilioSyncJob(JobRunner):
         if not device:
             return
 
-        from .utils.lca_params import get_device_lca_params
+        from .utils.lca_params import get_device_params
         from .utils.resilio_client import ResilioDBClient
         from .models import LCAImpactData, LCAImpactIndicatorValue, Indicator
 
         # Get device parameters
-        device_params = get_device_lca_params(device)
+        device_params = get_device_params(device)
         if not device_params:
             self.log_warning(f"No LCA type mapping found for device {device.name}")
             return
@@ -41,18 +41,18 @@ class ResilioSyncJob(JobRunner):
             # Initialize client and make request
             client = ResilioDBClient()
             response = client.get_footprint(
-                device_params['lca_type'].resilio_endpoint,
+                device_params['lca_type'],
                 payload
             )
 
             # Get or create impact data record
             impact_data, _ = LCAImpactData.objects.get_or_create(device=device)
-            impact_data.cache_entry = client.get_cache_entry()
+            impact_data.cache_entry = client.get_cache_entry() # TOFIX: get footprint should return the lca cache object and we should assign it to the impact data object.
             impact_data.save()
 
             # Process results
             results = response['results']
-            endpoint_results = results[device_params['lca_type'].resilio_endpoint]
+            endpoint_results = results[device_params['lca_type']]
 
             # Create/update indicator values
             for indicator_code, total_value in endpoint_results['total'].items():
