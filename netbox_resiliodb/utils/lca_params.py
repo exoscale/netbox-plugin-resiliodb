@@ -171,4 +171,5 @@ def get_device_type_params(device_type):
     if not device or not device.role:
         return None
 
-    return get_device_params(device)
+    device_params = get_device_lca_params(device)
+    return device_params['params'] if device_params else None
