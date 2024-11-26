@@ -58,12 +58,30 @@ class ResilioSyncJob(JobRunner):
             print(response)
 
             # Get or create impact data record and assign cache entry
-            impact_data, _ = LCAImpactData.objects.get_or_create(device=device) # TOFIX : this line is crashing python somehow
-            print("Impact data created")
-            impact_data.cache_entry = response['_cache_entry']
-            print("toto")
-            impact_data.save()
-            print("saved")
+            try:
+                print(f"Attempting to get/create LCAImpactData for device {device.id}")
+                # First try to get existing record
+                try:
+                    impact_data = LCAImpactData.objects.get(device=device)
+                    print(f"Found existing impact data record: {impact_data.id}")
+                except LCAImpactData.DoesNotExist:
+                    print("No existing record found, creating new one")
+                    impact_data = LCAImpactData.objects.create(
+                        device=device,
+                        cache_entry=response.get('_cache_entry')
+                    )
+                    print(f"Created new impact data record: {impact_data.id}")
+                
+                # Update cache entry
+                impact_data.cache_entry = response.get('_cache_entry')
+                impact_data.save()
+                print("Successfully saved impact data")
+                
+            except Exception as e:
+                print(f"Error creating/updating impact data: {str(e)}")
+                print(f"Device info: id={device.id}, name={device.name}")
+                print(f"Response cache entry: {response.get('_cache_entry')}")
+                raise
 
             # Process results
             results = response['results']

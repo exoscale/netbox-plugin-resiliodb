@@ -139,8 +139,18 @@ class LCAImpactData(NetBoxModel):
     """
     Stores environmental impact data for devices.
     """
-    device = models.OneToOneField(Device, on_delete=models.CASCADE)
-    cache_entry = models.ForeignKey(LCACache, on_delete=models.SET_NULL, null=True, blank=True)
+    device = models.OneToOneField(
+        to=Device,
+        on_delete=models.CASCADE,
+        related_name='lca_impact_data'
+    )
+    cache_entry = models.ForeignKey(
+        to=LCACache,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='impact_data'
+    )
 
     class Meta:
         ordering = ('device',)
