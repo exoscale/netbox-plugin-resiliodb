@@ -12,7 +12,9 @@
                 data: {
                     labels: [
                         {% for value in object.lca_impact_data.indicator_values.all %}
-                            '{{ value.indicator.code }}',
+                            {% if value.indicator.code in 'ADPe,ADPf,AP,GWP,IR,PM,WU'|split:',' %}
+                                '{{ value.indicator.code }}',
+                            {% endif %}
                         {% endfor %}
                     ],
                     datasets: [
@@ -20,7 +22,9 @@
                             label: 'EOL',
                             data: [
                                 {% for value in object.lca_impact_data.indicator_values.all %}
-                                    {{ value.EOL|default:0 }},
+                                    {% if value.indicator.code in 'ADPe,ADPf,AP,GWP,IR,PM,WU'|split:',' %}
+                                        {{ value.EOL|default:0 }},
+                                    {% endif %}
                                 {% endfor %}
                             ],
                             backgroundColor: '#76B947'
@@ -29,7 +33,9 @@
                             label: 'USE',
                             data: [
                                 {% for value in object.lca_impact_data.indicator_values.all %}
-                                    {{ value.USE|default:0 }},
+                                    {% if value.indicator.code in 'ADPe,ADPf,AP,GWP,IR,PM,WU'|split:',' %}
+                                        {{ value.USE|default:0 }},
+                                    {% endif %}
                                 {% endfor %}
                             ],
                             backgroundColor: '#2E5520'
@@ -38,7 +44,9 @@
                             label: 'DIS',
                             data: [
                                 {% for value in object.lca_impact_data.indicator_values.all %}
-                                    {{ value.DIS|default:0 }},
+                                    {% if value.indicator.code in 'ADPe,ADPf,AP,GWP,IR,PM,WU'|split:',' %}
+                                        {{ value.DIS|default:0 }},
+                                    {% endif %}
                                 {% endfor %}
                             ],
                             backgroundColor: '#FFF4BD'
@@ -47,7 +55,9 @@
                             label: 'BLD',
                             data: [
                                 {% for value in object.lca_impact_data.indicator_values.all %}
-                                    {{ value.BLD|default:0 }},
+                                    {% if value.indicator.code in 'ADPe,ADPf,AP,GWP,IR,PM,WU'|split:',' %}
+                                        {{ value.BLD|default:0 }},
+                                    {% endif %}
                                 {% endfor %}
                             ],
                             backgroundColor: '#FFED83'
