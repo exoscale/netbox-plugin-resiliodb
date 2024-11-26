@@ -42,7 +42,11 @@ class ResilioDBClient:
 
         # Need to get new token
         try:
-            response = requests.post(
+            # Configure session without system proxy
+            session = requests.Session()
+            session.trust_env = False  # Don't use system proxy settings
+            
+            response = session.post(
                 f"{self.base_url}/api/login",
                 json={"secretAccessToken": self.api_key},
                 headers={'Content-Type': 'application/json'}
@@ -111,7 +115,11 @@ class ResilioDBClient:
         # Make API request
         try:
             endpoint = f"{self.base_url}/api/{lca_type}"
-            response = requests.post(
+            # Use session without system proxy
+            session = requests.Session()
+            session.trust_env = False
+            
+            response = session.post(
                 endpoint,
                 json=payload,
                 headers=self._get_headers()
@@ -135,7 +143,11 @@ class ResilioDBClient:
     def get_countries(self) -> list:
         """Get list of supported countries"""
         try:
-            response = requests.get(
+            # Use session without system proxy
+            session = requests.Session()
+            session.trust_env = False
+            
+            response = session.get(
                 f"{self.base_url}/api/countries",
                 headers=self._get_headers()
             )
@@ -148,7 +160,9 @@ class ResilioDBClient:
     def healthcheck(self) -> bool:
         """Check if ResilioDB API is available"""
         try:
-            response = requests.get(f"{self.base_url}/api/healthcheck")
+            session = requests.Session()
+            session.trust_env = False
+            response = session.get(f"{self.base_url}/api/healthcheck")
             return response.status_code == 200
         except:
             return False
