@@ -5,6 +5,14 @@ from netbox_resiliodb.models import LCAParams
 register = template.Library()
 
 @register.filter
+def multiply(value, arg):
+    """Multiply the arg by the value"""
+    try:
+        return float(value) * float(arg)
+    except (ValueError, TypeError):
+        return 0
+
+@register.filter
 def content_type_parameters(obj):
     """
     Returns LCAParams for a given object using content type lookup
