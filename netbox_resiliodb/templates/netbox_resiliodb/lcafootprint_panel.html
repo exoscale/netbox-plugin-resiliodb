@@ -24,7 +24,7 @@
                                 {% for value in object.lca_impact_data.indicator_values.all %}
                                     {% if value.indicator.code in 'ADPe,ADPf,AP,GWP,IR,PM,WU'|split:',' %}
                                         {% with total=value.EOL|default:0|add:value.USE|default:0|add:value.DIS|default:0|add:value.BLD|default:0 %}
-                                            {{ value.EOL|default:0|divisibleby:total }},
+                                            {% if total != 0 %}{{ value.EOL|default:0|multiply:100|divisibleby:total|floatformat:1 }}{% else %}0{% endif %},
                                         {% endwith %}
                                     {% endif %}
                                 {% endfor %}
@@ -44,7 +44,7 @@
                                 {% for value in object.lca_impact_data.indicator_values.all %}
                                     {% if value.indicator.code in 'ADPe,ADPf,AP,GWP,IR,PM,WU'|split:',' %}
                                         {% with total=value.EOL|default:0|add:value.USE|default:0|add:value.DIS|default:0|add:value.BLD|default:0 %}
-                                            {{ value.USE|default:0|divisibleby:total }},
+                                            {% if total != 0 %}{{ value.USE|default:0|multiply:100|divisibleby:total|floatformat:1 }}{% else %}0{% endif %},
                                         {% endwith %}
                                     {% endif %}
                                 {% endfor %}
@@ -64,7 +64,7 @@
                                 {% for value in object.lca_impact_data.indicator_values.all %}
                                     {% if value.indicator.code in 'ADPe,ADPf,AP,GWP,IR,PM,WU'|split:',' %}
                                         {% with total=value.EOL|default:0|add:value.USE|default:0|add:value.DIS|default:0|add:value.BLD|default:0 %}
-                                            {{ value.DIS|default:0|divisibleby:total }},
+                                            {% if total != 0 %}{{ value.DIS|default:0|multiply:100|divisibleby:total|floatformat:1 }}{% else %}0{% endif %},
                                         {% endwith %}
                                     {% endif %}
                                 {% endfor %}
@@ -84,7 +84,7 @@
                                 {% for value in object.lca_impact_data.indicator_values.all %}
                                     {% if value.indicator.code in 'ADPe,ADPf,AP,GWP,IR,PM,WU'|split:',' %}
                                         {% with total=value.EOL|default:0|add:value.USE|default:0|add:value.DIS|default:0|add:value.BLD|default:0 %}
-                                            {{ value.BLD|default:0|divisibleby:total }},
+                                            {% if total != 0 %}{{ value.BLD|default:0|multiply:100|divisibleby:total|floatformat:1 }}{% else %}0{% endif %},
                                         {% endwith %}
                                     {% endif %}
                                 {% endfor %}
