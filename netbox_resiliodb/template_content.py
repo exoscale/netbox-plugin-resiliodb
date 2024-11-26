@@ -15,9 +15,27 @@ def create_lcaparams_panel(self):
 
 def create_lcafootprint_panel(self):
     try:
+        impact_data = []
+        if hasattr(self.context['object'], 'lca_impact_data'):
+            lca_data = self.context['object'].lca_impact_data
+            if lca_data:
+                for value in lca_data.indicator_values.all():
+                    impact_data.append({
+                        'indicator': value.indicator.code,
+                        'unit': value.indicator.unit,
+                        'total': value.total_value,
+                        'steps': {
+                            'BLD': value.BLD or 0,
+                            'DIS': value.DIS or 0,
+                            'USE': value.USE or 0,
+                            'EOL': value.EOL or 0
+                        }
+                    })
+
         return self.render('netbox_resiliodb/lcafootprint_panel.html', extra_context={
             'object': self.context['object'],
-            'request': self.context['request']
+            'request': self.context['request'],
+            'impact_data': impact_data
         })
     except Exception as e:
         logging.error(f"Error rendering LCA params panel: {str(e)}")

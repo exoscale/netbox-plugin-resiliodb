@@ -2,10 +2,77 @@
 <div class="card mb-3">
     <h5 class="card-header">{% trans "LCA Footprint" %}</h5>
     <div class="card-body">
-        {% if object.lca_impact_data %}
+        {% if impact_data %}
         <canvas id="lcaChart"></canvas>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            const ctx = document.getElementById('lcaChart');
+            const impact_data = {{ impact_data|safe }};
+            
+            // Prepare data for Chart.js
+            const labels = impact_data.map(d => d.indicator);
+            const datasets = [
+                {
+                    label: 'EOL',
+                    data: impact_data.map(d => (d.steps.EOL / d.total * 100).toFixed(1)),
+                    backgroundColor: '#4CAF50',
+                    stack: 'Stack 0',
+                },
+                {
+                    label: 'USE',
+                    data: impact_data.map(d => (d.steps.USE / d.total * 100).toFixed(1)),
+                    backgroundColor: '#2E7D32',
+                    stack: 'Stack 0',
+                },
+                {
+                    label: 'DIS',
+                    data: impact_data.map(d => (d.steps.DIS / d.total * 100).toFixed(1)),
+                    backgroundColor: '#FFF9C4',
+                    stack: 'Stack 0',
+                },
+                {
+                    label: 'BLD',
+                    data: impact_data.map(d => (d.steps.BLD / d.total * 100).toFixed(1)),
+                    backgroundColor: '#FFF59D',
+                    stack: 'Stack 0',
+                }
+            ];
 
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            stacked: true,
+                        },
+                        y: {
+                            stacked: true,
+                            min: 0,
+                            max: 100
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const dataIndex = context.dataIndex;
+                                    const datasetLabel = context.dataset.label;
+                                    const indicator = impact_data[dataIndex];
+                                    const stepValue = indicator.steps[datasetLabel];
+                                    const percentage = (stepValue / indicator.total * 100).toFixed(1);
+                                    return `${datasetLabel}: ${stepValue.toFixed(2)} ${indicator.unit} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        </script>
         {% else %}
         <span class="text-muted">No LCA impact data available</span>
         {% endif %}
