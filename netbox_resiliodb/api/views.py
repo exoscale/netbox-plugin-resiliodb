@@ -13,7 +13,8 @@ from .serializers import (
     SiteCountryMappingSerializer,
     LCAParamsSerializer,
     PluginSettingsSerializer,
-    DeviceSyncSerializer
+    DeviceSyncSerializer,
+    LCAImpactDataSerializer
 )
 from ..jobs import ResilioSyncJob
 
