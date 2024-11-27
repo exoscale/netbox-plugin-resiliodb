@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from netbox.api.serializers import NetBoxModelSerializer, WritableNestedSerializer
-from dcim.api.nested_serializers import NestedDeviceRoleSerializer, NestedSiteSerializer, NestedRegionSerializer
+from dcim.api.nested_serializers import NestedDeviceRoleSerializer, NestedSiteSerializer, NestedRegionSerializer, NestedDeviceSerializer
 from .. import models
 from dcim.models import ModuleType, Device
 
@@ -63,6 +63,19 @@ class PluginSettingsSerializer(NetBoxModelSerializer):
         model = models.PluginSettings
         fields = ('id', 'url', 'api_url', 'api_key', 'api_version', 'default_usage_period_hours',
                  'default_power_watts', 'resync_on_api_version_change', 'created', 'last_updated')
+
+class LCAImpactDataSerializer(NetBoxModelSerializer):
+    device = NestedDeviceSerializer()
+    cache_payload = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.LCAImpactData
+        fields = ('id', 'device', 'calculated_at', 'cache_payload')
+
+    def get_cache_payload(self, obj):
+        if obj.cache_entry:
+            return obj.cache_entry.request_payload
+        return None
 
 class DeviceSyncSerializer(NetBoxModelSerializer):
     device_id = serializers.IntegerField(required=False)

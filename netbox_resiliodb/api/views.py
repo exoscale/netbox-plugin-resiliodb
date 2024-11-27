@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
+from django.shortcuts import get_object_or_404
 from .. import models
 from dcim.models import Device
 from .serializers import (
@@ -55,6 +56,23 @@ class PluginSettingsViewSet(NetBoxModelViewSet):
         return Response({"status": "success", "message": "Stale jobs cleaned up"})
 
 from dcim.models import Device
+
+class LCAImpactDataViewSet(NetBoxModelViewSet):
+    queryset = models.LCAImpactData.objects.all()
+    serializer_class = LCAParamsSerializer
+
+    @action(detail=False, methods=['get'])
+    def by_device(self, request):
+        device_id = request.query_params.get('device_id')
+        if not device_id:
+            return Response(
+                {"error": "device_id parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        impact_data = get_object_or_404(models.LCAImpactData, device_id=device_id)
+        serializer = LCAImpactDataSerializer(impact_data)
+        return Response(serializer.data)
 
 class DeviceSyncViewSet(NetBoxModelViewSet):
     queryset = Device.objects.all()
