@@ -32,9 +32,3 @@ menu_items = (
         permissions=['netbox_resiliodb.view_sitecountrymapping']
     ),
 )
-
-menu = PluginMenu(
-    label='ResilioDB',
-    groups=(('', menu_items),),
-    icon_class='mdi mdi-earth'
-)
