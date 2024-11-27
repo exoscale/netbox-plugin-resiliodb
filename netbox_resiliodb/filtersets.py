@@ -55,13 +55,9 @@ class DeviceResilioFilterSet(NetBoxModelFilterSet):
 
     def filter_lca_impact_status(self, queryset, name, value):
         if value == 'no':
-            return queryset.filter(lca_impact_data__isnull=True)
+            return queryset.filter(pk__in=[d.pk for d in queryset if d.get_lca_impact_status() == 0])
         elif value == 'yes':
-            return queryset.filter(lca_impact_data__isnull=False).exclude(
-                pk__in=[d.pk for d in queryset if d.get_lca_impact_status() is False]
-            )
+            return queryset.filter(pk__in=[d.pk for d in queryset if d.get_lca_impact_status() == 1])
         elif value == 'outdated':
-            return queryset.filter(lca_impact_data__isnull=False).filter(
-                pk__in=[d.pk for d in queryset if d.get_lca_impact_status() is False]
-            )
+            return queryset.filter(pk__in=[d.pk for d in queryset if d.get_lca_impact_status() == 2])
         return queryset

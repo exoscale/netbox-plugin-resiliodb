@@ -91,9 +91,9 @@ class DeviceResilioTable(NetBoxTable):
 
     def get_lca_impact_status_display(self, record):
         status = record.get_lca_impact_status()
-        if status is None:
+        if status == 0:
             return "Missing"
-        elif status:
+        elif status == 1:
             return "Current"
         else:
             return "Outdated"
@@ -105,9 +105,9 @@ class DeviceResilioTable(NetBoxTable):
     )
 
     def render_lca_impact_status(self, value):
-        if value is None:
+        if value == 0:
             return "Missing"
-        elif value:
+        elif value == 1:
             return "Current"
         else:
             return "Outdated"
