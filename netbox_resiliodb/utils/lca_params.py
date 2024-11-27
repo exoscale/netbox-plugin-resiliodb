@@ -23,16 +23,16 @@ def get_module_type_params(module_type):
             # Check for casing and technology tags
             casing = "casing_M2"  # Default casing
             technology = "TLC"    # Default technology
-            
+
             for tech_tag in module_type.tags.all():
                 tech_name = tech_tag.name.upper()
                 # Check casing tags
                 if tech_name in ["M2", "2.5INCH"]:
                     casing = f"casing_{tech_name}"
-                # Check technology tags    
+                # Check technology tags
                 elif tech_name in ["SLC", "MLC", "TLC", "QLC"]:
                     technology = tech_name
-                    
+
             return {
                 "casing": casing,
                 "size_gb": 1920,
@@ -47,7 +47,7 @@ def get_module_type_params(module_type):
                 size_gb = int(match.group(1))
             else:
                 size_gb = 8  # Default size if not found
-                
+
             return {
                 "size_gb": size_gb
             }
@@ -76,15 +76,12 @@ def get_server_components(device):
             object_id=module.module_type.pk
         ).first()
 
-        if not module_params:
-            continue
-
         # Check module tags and aggregate parameters
         for tag in module.module_type.tags.all():
             tag_name = tag.name.upper()
             # Use module_params if available, otherwise get default params
             params = module_params.parameters if module_params else get_module_type_params(module.module_type)
-            
+
             if tag_name == 'CPU' and params:
                 cpus.append(params)
             elif tag_name == 'RAM' and params:
