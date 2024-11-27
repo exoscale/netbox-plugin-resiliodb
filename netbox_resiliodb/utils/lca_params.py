@@ -19,13 +19,13 @@ def get_module_type_params(module_type):
                 "litho_nm": cpu_specs['litho_nm'],
                 "die_surface_mm2": cpu_specs['die_surface_mm2']
             }
-        elif tag_name == 'SSD':
+        elif tag_name == 'SSD': # TODO: check if the device has additional tags for casing (M2 or 2.5inch) and tech (slc, mlc, tlc, qlc) all in uppercase.
             return {
                 "casing": "casing_M2",
-                "size_gb": 564,
+                "size_gb": 1920,
                 "technology": "TLC"
             }
-        elif tag_name == 'RAM':
+        elif tag_name == 'RAM': # TODO: try to guess ram amount based on module type name (look for ##GB or ## GB for ex.)
             return {
                 "size_gb": 8
             }
@@ -58,7 +58,7 @@ def get_server_components(device):
             continue
 
         # Check module tags and aggregate parameters
-        for tag in module.module_type.tags.all():
+        for tag in module.module_type.tags.all(): # TODO: call get_module_type_params to get default parameters when we have a tagged module that does not have paramaters
             tag_name = tag.name.upper()
             if tag_name == 'CPU' and module_params.parameters:
                 cpus.append(module_params.parameters)

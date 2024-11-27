@@ -18,7 +18,7 @@ def create_lcafootprint_panel(self):
         impact_data = []
         gwp_data = None
         wu_data = None
-        
+
         if hasattr(self.context['object'], 'lca_impact_data'):
             lca_data = self.context['object'].lca_impact_data
             if lca_data:
@@ -35,7 +35,7 @@ def create_lcafootprint_panel(self):
                         }
                     }
                     impact_data.append(data)
-                    
+
                     # Store GWP and WU data separately
                     if value.indicator.code == 'GWP':
                         gwp_data = data
@@ -62,7 +62,7 @@ class DeviceTypeLCAParams(PluginTemplateExtension):
 class DeviceLCAParams(PluginTemplateExtension):
     model = 'dcim.device'
 
-    def right_page(self):
+    def left_page(self):
         return create_lcaparams_panel(self)
 
 class DeviceFootprintParams(PluginTemplateExtension):
@@ -84,4 +84,4 @@ class DeviceSyncButton(PluginTemplateExtension):
     def buttons(self):
         return self.render('netbox_resiliodb/sync_button.html')
 
-template_extensions = [DeviceTypeLCAParams, DeviceLCAParams, ModuleTypeLCAParams, DeviceSyncButton, DeviceFootprintParams]
+template_extensions = [DeviceTypeLCAParams, ModuleTypeLCAParams, DeviceSyncButton, DeviceFootprintParams, DeviceLCAParams]
