@@ -262,20 +262,22 @@ def has_lca_params(self):
 
 def get_lca_impact_status(self):
     """
-    Returns the status of LCA impact data as an integer code:
-    0 = Missing (no data)
-    1 = Current (data present and up to date)
-    2 = Outdated (data present but needs refresh)
+    Returns the status of LCA impact data
     """
     try:
         impact_data = self.lca_impact_data
+        print(impact_data)
         if not impact_data or not impact_data.cache_entry:
-            return 0
-        if impact_data.is_outdated():
-            return 2
-        return 1
+            print("not found")
+            return "Data Missing"
+        #if impact_data.is_outdated(): # TOFIX somehow if this is uncommented, we never see the output, likely it breaks in the is_outaded method somehow.
+        #    print("outdated")
+        #    return "Outdated"
+        print("Current")
+        return "Current"
     except ObjectDoesNotExist:
-        return 0
+        print("toto")
+        return "Missing"
 
 Device.has_lca_params = has_lca_params
 Device.get_lca_impact_status = get_lca_impact_status
