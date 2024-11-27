@@ -90,3 +90,8 @@ class DeviceResilioFilterForm(FilterForm):
         choices=[(True, "Yes"), (False, "No")],
         required=False
     )
+
+    lca_impact_status = forms.MultipleChoiceField(
+        choices=[('yes', "Current"), ('no', "Missing"), ('outdated', "Outdated")],
+        required=False
+    )
