@@ -100,8 +100,17 @@ class DeviceResilioTable(NetBoxTable):
 
     lca_impact_status = tables.Column(
         verbose_name='LCA Impact Data',
-        accessor=get_lca_impact_status_display
+        accessor='get_lca_impact_status',
+        default='Missing'
     )
+
+    def render_lca_impact_status(self, value):
+        if value is None:
+            return "Missing"
+        elif value:
+            return "Current"
+        else:
+            return "Outdated"
 
     class Meta(NetBoxTable.Meta):
         model = Device
