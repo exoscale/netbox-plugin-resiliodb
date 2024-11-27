@@ -181,6 +181,8 @@ def get_device_params(device):
     if geography and 'usage' in params:
         params['usage']['geography'] = geography
 
+    # TODO: OVERRIDE the default parameter for "usage"]["'duration_of_use_hour' based on setting default.
+
     return {
         'lca_type': mapping.lca_type.resilio_endpoint,
         'params': params
