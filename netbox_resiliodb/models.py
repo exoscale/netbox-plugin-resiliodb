@@ -169,39 +169,21 @@ class LCAImpactData(NetBoxModel):
         from .utils.resilio_client import ResilioDBClient
         import logging
 
-        logger = logging.getLogger(__name__)
-        logger.debug(f"Checking if impact data is outdated for device {self.device.name}")
-
         if not self.cache_entry:
-            logger.debug("No cache entry found")
             return True
 
         device_params = get_device_params(self.device)
-        logger.debug(f"Device params: {device_params}")
-        
-        if not device_params:
-            logger.debug("No device params found")
-            return True
-            
-        if not device_params.get('lca_type'):
-            logger.debug("No LCA type found in device params")
+        if not device_params or not device_params.get('lca_type'):
             return True
 
         try:
-            # Compute hash for current params
             client = ResilioDBClient()
             payload = {"assembly": False, "data": [device_params['params']]}
-            logger.debug(f"Computing hash for payload: {payload}")
-            
             current_hash = client._compute_hash(
                 device_params['lca_type'],
                 payload
             )
-            logger.debug(f"Current hash: {current_hash}")
-            logger.debug(f"Cached hash: {self.cache_entry.hash}")
-            
             return current_hash != self.cache_entry.hash
-            
         except Exception as e:
             logger.error(f"Error computing hash: {str(e)}")
             raise
@@ -288,26 +270,17 @@ def get_lca_impact_status(self):
     """
     try:
         impact_data = self.lca_impact_data
-        print(f"Impact data for device {self.name}: {impact_data}")
-        
         if not impact_data or not impact_data.cache_entry:
-            print(f"No impact data or cache entry for device {self.name}")
             return "Data Missing"
             
         try:
-            is_outdated = impact_data.is_outdated()
-            print(f"Is outdated check completed for device {self.name}: {is_outdated}")
-            if is_outdated:
-                print(f"Data is outdated for device {self.name}")
+            if impact_data.is_outdated():
                 return "Outdated"
-        except Exception as e:
-            print(f"Error in is_outdated() for device {self.name}: {str(e)}")
+        except Exception:
             return "Error"
             
-        print(f"Data is current for device {self.name}")
         return "Current"
     except ObjectDoesNotExist:
-        print(f"ObjectDoesNotExist for device {self.name}")
         return "Missing"
 
 Device.has_lca_params = has_lca_params
