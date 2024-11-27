@@ -1,3 +1,4 @@
+import logging
 from django.db import models
 from django.urls import reverse
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -8,6 +9,8 @@ from utilities.choices import ChoiceSet
 from dcim.models import DeviceType, ModuleType, DeviceRole, Site, Region, Device
 
 from django.core.exceptions import ObjectDoesNotExist
+
+logger = logging.getLogger(__name__)
 
 class LCAType(NetBoxModel):
     """
