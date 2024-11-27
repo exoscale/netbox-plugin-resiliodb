@@ -19,15 +19,37 @@ def get_module_type_params(module_type):
                 "litho_nm": cpu_specs['litho_nm'],
                 "die_surface_mm2": cpu_specs['die_surface_mm2']
             }
-        elif tag_name == 'SSD': # TODO: check if the device has additional tags for casing (M2 or 2.5inch) and tech (slc, mlc, tlc, qlc) all in uppercase.
+        elif tag_name == 'SSD':
+            # Check for casing and technology tags
+            casing = "casing_M2"  # Default casing
+            technology = "TLC"    # Default technology
+            
+            for tech_tag in module_type.tags.all():
+                tech_name = tech_tag.name.upper()
+                # Check casing tags
+                if tech_name in ["M2", "2.5INCH"]:
+                    casing = f"casing_{tech_name}"
+                # Check technology tags    
+                elif tech_name in ["SLC", "MLC", "TLC", "QLC"]:
+                    technology = tech_name
+                    
             return {
-                "casing": "casing_M2",
+                "casing": casing,
                 "size_gb": 1920,
-                "technology": "TLC"
+                "technology": technology
             }
-        elif tag_name == 'RAM': # TODO: try to guess ram amount based on module type name (look for ##GB or ## GB for ex.)
+        elif tag_name == 'RAM':
+            import re
+            # Look for RAM size in module type name
+            size_pattern = r'(\d+)\s*GB'
+            match = re.search(size_pattern, module_type.model, re.IGNORECASE)
+            if match:
+                size_gb = int(match.group(1))
+            else:
+                size_gb = 8  # Default size if not found
+                
             return {
-                "size_gb": 8
+                "size_gb": size_gb
             }
         elif tag_name == 'GPU':
             return {
@@ -58,16 +80,19 @@ def get_server_components(device):
             continue
 
         # Check module tags and aggregate parameters
-        for tag in module.module_type.tags.all(): # TODO: call get_module_type_params to get default parameters when we have a tagged module that does not have paramaters
+        for tag in module.module_type.tags.all():
             tag_name = tag.name.upper()
-            if tag_name == 'CPU' and module_params.parameters:
-                cpus.append(module_params.parameters)
-            elif tag_name == 'RAM' and module_params.parameters:
-                rams.append(module_params.parameters)
-            elif tag_name == 'SSD' and module_params.parameters:
-                ssds.append(module_params.parameters)
-            elif tag_name == 'GPU' and module_params.parameters:
-                gpus.append(module_params.parameters)
+            # Use module_params if available, otherwise get default params
+            params = module_params.parameters if module_params else get_module_type_params(module.module_type)
+            
+            if tag_name == 'CPU' and params:
+                cpus.append(params)
+            elif tag_name == 'RAM' and params:
+                rams.append(params)
+            elif tag_name == 'SSD' and params:
+                ssds.append(params)
+            elif tag_name == 'GPU' and params:
+                gpus.append(params)
             elif tag_name == 'HDD':
                 hdd_count += 1
 
