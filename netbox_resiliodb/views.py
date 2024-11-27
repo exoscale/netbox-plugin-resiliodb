@@ -157,6 +157,14 @@ class LCAParamsEditView(generic.ObjectEditView):
             object_id = request.GET.get('object_id')
 
             if content_type_id and object_id:
+                # Check if params already exist
+                existing = models.LCAParams.objects.filter(
+                    content_type_id=content_type_id,
+                    object_id=object_id
+                ).first()
+                if existing:
+                    return existing
+                    
                 instance.content_type_id = content_type_id
                 instance.object_id = object_id
 

@@ -29,6 +29,10 @@
                                        class="btn btn-sm btn-warning">
                                         <i class="mdi mdi-pencil" aria-hidden="true"></i> Edit
                                     </a>
+                                    <a href="{% url 'plugins:netbox_resiliodb:lcaparams_delete' pk=params.pk %}?return_url={{ request.path }}"
+                                       class="btn btn-sm btn-danger">
+                                        <i class="mdi mdi-trash-can-outline" aria-hidden="true"></i> Delete
+                                    </a>
                                 </td>
                             </tr>
                         </table>

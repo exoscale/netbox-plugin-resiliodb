@@ -110,6 +110,7 @@ class LCAParams(NetBoxModel):
         ]
         verbose_name = "LCA Parameters"
         verbose_name_plural = "LCA Parameters"
+        unique_together = [('content_type', 'object_id')]  # Additional enforcement
 
     def __str__(self):
         return f'LCA Params for {self.content_object}'
