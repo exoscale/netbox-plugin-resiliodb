@@ -219,7 +219,13 @@ class PoolMapping(NetBoxModel):
     Maps pools to platform and device roles for grouping devices.
     """
     pool_name = models.CharField(max_length=100)
-    platform = models.CharField(max_length=100, blank=True, null=True)
+    platform = models.ForeignKey(
+        to='dcim.Platform',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='pool_mappings'
+    )
     device_roles = models.ManyToManyField(DeviceRole, blank=True)
 
     class Meta:
