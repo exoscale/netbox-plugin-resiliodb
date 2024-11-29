@@ -83,24 +83,29 @@ class LCAImpactDataViewSet(NetBoxModelViewSet):
         from ..filtersets import DeviceResilioFilterSet
         from dcim.models import Device
 
-        # Get base queryset of all devices
+        # Get devices based on selection or filters
         queryset = Device.objects.all()
         
-        # Apply filters if provided
-        filters = {}
-        filter_params = ['site', 'site_id', 'role', 'role_id', 'region', 'region_id']
-        for param in filter_params:
-            if request.query_params.get(param):
-                filters[param] = request.query_params.get(param)
-        
-        # Add LCA impact status filter if provided
-        if request.query_params.get('lca_impact_status'):
-            filters['lca_impact_status'] = request.query_params.get('lca_impact_status')
-
-        # Apply device filters
-        if filters:
-            filterset = DeviceResilioFilterSet(filters, queryset)
-            queryset = filterset.qs
+        if request.query_params.get('select_all') == 'true':
+            # Apply filters when select_all is true
+            filters = {}
+            filter_params = ['site', 'site_id', 'role', 'role_id', 'region', 'region_id', 'lca_impact_status']
+            for param in filter_params:
+                if request.query_params.get(param):
+                    filters[param] = request.query_params.get(param)
+            
+            if filters:
+                filterset = DeviceResilioFilterSet(filters, queryset)
+                queryset = filterset.qs
+        else:
+            # Use selected devices
+            selected_devices = request.query_params.getlist('selected_devices[]')
+            if not selected_devices:
+                return Response(
+                    {"error": "No devices selected"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            queryset = queryset.filter(pk__in=selected_devices)
 
         # Get all impact data for filtered devices
         impact_data_list = models.LCAImpactData.objects.filter(

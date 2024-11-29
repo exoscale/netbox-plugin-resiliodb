@@ -6,7 +6,7 @@
     {% include 'netbox_resiliodb/sync_button.html' %}
     {% if perms.dcim.view_device %}
         <button type="button" class="btn btn-info btn-sm" onclick="downloadCSV()">
-            <i class="mdi mdi-download" aria-hidden="true"></i> Download CSV
+            <i class="mdi mdi-download" aria-hidden="true"></i> Download Impact Data CSV
         </button>
     {% endif %}
 {% endblock bulk_buttons %}
@@ -14,33 +14,37 @@
 {% block javascript %}
 <script>
     function downloadCSV() {
-        // Get current filter parameters from URL
+        // Get selected checkboxes
+        const selectedDevices = Array.from(document.querySelectorAll('input[name="pk"]:checked')).map(cb => cb.value);
+        const selectAll = document.querySelector('input[name="_all"]').checked;
+        
+        // Get current filter parameters
         const urlParams = new URLSearchParams(window.location.search);
         const filterParams = {};
-
-        // Map relevant filter parameters
-        [
-            "site",
-            "site_id",
-            "role",
-            "role_id",
-            "region",
-            "region_id",
-            "lca_impact_status",
-        ].forEach((param) => {
+        ["site", "site_id", "role", "role_id", "region", "region_id", "lca_impact_status"].forEach((param) => {
             if (urlParams.has(param)) {
                 filterParams[param] = urlParams.get(param);
             }
         });
 
-        // Construct API URL with filters
+        // Construct API URL
         let apiUrl = "/api/plugins/resiliodb/lca-impact-data/csv_export/";
-        if (Object.keys(filterParams).length > 0) {
-            apiUrl += "?" + new URLSearchParams(filterParams).toString();
+        const params = new URLSearchParams();
+        
+        if (selectAll) {
+            params.append('select_all', 'true');
+            Object.entries(filterParams).forEach(([key, value]) => {
+                params.append(key, value);
+            });
+        } else if (selectedDevices.length > 0) {
+            selectedDevices.forEach(id => params.append('selected_devices[]', id));
+        } else {
+            alert('Please select at least one device or use "Select all"');
+            return;
         }
-
-        // Trigger download
-        window.location.href = apiUrl;
+        
+        // Trigger download with parameters
+        window.location.href = apiUrl + '?' + params.toString();
     }
 </script>
 {% endblock javascript %}
