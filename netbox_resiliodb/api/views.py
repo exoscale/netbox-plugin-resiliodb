@@ -80,30 +80,50 @@ class LCAImpactDataViewSet(NetBoxModelViewSet):
         from django.http import HttpResponse
         import csv
         from io import StringIO
+        from ..filtersets import DeviceResilioFilterSet
+        from dcim.models import Device
 
-        device_id = request.query_params.get('device_id')
-        if not device_id:
+        # Get base queryset of all devices
+        queryset = Device.objects.all()
+        
+        # Apply filters if provided
+        filters = {}
+        filter_params = ['site', 'site_id', 'role', 'role_id', 'region', 'region_id']
+        for param in filter_params:
+            if request.query_params.get(param):
+                filters[param] = request.query_params.get(param)
+        
+        # Add LCA impact status filter if provided
+        if request.query_params.get('lca_impact_status'):
+            filters['lca_impact_status'] = request.query_params.get('lca_impact_status')
+
+        # Apply device filters
+        if filters:
+            filterset = DeviceResilioFilterSet(filters, queryset)
+            queryset = filterset.qs
+
+        # Get all impact data for filtered devices
+        impact_data_list = models.LCAImpactData.objects.filter(
+            device__in=queryset
+        ).select_related('device').prefetch_related('indicator_values__indicator')
+
+        if not impact_data_list:
             return Response(
-                {"error": "device_id parameter is required"},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "No impact data found for the given filters"},
+                status=status.HTTP_404_NOT_FOUND
             )
-
-        impact_data = get_object_or_404(models.LCAImpactData, device_id=device_id)
         
         # Create CSV content
         output = StringIO()
         writer = csv.writer(output)
         
         # Write header
-        header = ['hw_id', 'lc_step', 'ADPe', 'ADPf', 'AP', 'CTUe', 'CTUh_c', 'CTUh_nc', 
+        header = ['hw_id', 'site', 'role', 'lc_step', 'ADPe', 'ADPf', 'AP', 'CTUe', 'CTUh_c', 'CTUh_nc', 
                  'Epf', 'Epm', 'Ept', 'GWP', 'GWPf', 'GWPlu', 'IR', 'LU', 'ODP', 'PM', 
                  'POCP', 'WU', 'TPE', 'GWPb']
         writer.writerow(header)
         
-        # Get all indicators for this device
-        indicator_values = impact_data.indicator_values.all()
-        
-        # Create a mapping of indicator codes to values
+        # Define lifecycle steps
         steps = ['BLD', 'DIS', 'USE', 'EOL']
         step_names = {
             'BLD': 'manufacturing',
@@ -112,17 +132,26 @@ class LCAImpactDataViewSet(NetBoxModelViewSet):
             'EOL': 'end_of_life'
         }
         
-        # Write data for each lifecycle step
-        for step in steps:
-            row_data = [impact_data.device.name, step_names[step]]
-            # Add values for each indicator in order of header
-            for indicator_code in header[2:]:  # Skip hw_id and lc_step
-                value = 0
-                indicator_value = indicator_values.filter(indicator__code=indicator_code).first()
-                if indicator_value:
-                    value = getattr(indicator_value, step, 0) or 0
-                row_data.append(str(value))
-            writer.writerow(row_data)
+        # Write data for each device and lifecycle step
+        for impact_data in impact_data_list:
+            device = impact_data.device
+            indicator_values = impact_data.indicator_values.all()
+            
+            for step in steps:
+                row_data = [
+                    device.name,
+                    device.site.name if device.site else '',
+                    device.role.name if device.role else '',
+                    step_names[step]
+                ]
+                # Add values for each indicator in order of header
+                for indicator_code in header[4:]:  # Skip hw_id, site, role, and lc_step
+                    value = 0
+                    indicator_value = indicator_values.filter(indicator__code=indicator_code).first()
+                    if indicator_value:
+                        value = getattr(indicator_value, step, 0) or 0
+                    row_data.append(str(value))
+                writer.writerow(row_data)
 
         # Create the HTTP response with CSV content
         response = HttpResponse(output.getvalue(), content_type='text/csv')
