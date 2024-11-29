@@ -77,6 +77,82 @@ class LCAImpactDataViewSet(NetBoxModelViewSet):
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
+    def inventory_export(self, request):
+        from django.http import HttpResponse
+        import csv
+        from io import StringIO
+        from ..filtersets import DeviceResilioFilterSet
+        from dcim.models import Device
+        from ..utils.lca_params import get_device_params
+        from ..models import PluginSettings
+
+        # Get devices based on selection or filters
+        queryset = Device.objects.all()
+        
+        if request.query_params.get('select_all') == 'true':
+            filters = {}
+            filter_params = ['site', 'site_id', 'role', 'role_id', 'region', 'region_id']
+            for param in filter_params:
+                if request.query_params.get(param):
+                    filters[param] = request.query_params.get(param)
+            
+            if filters:
+                filterset = DeviceResilioFilterSet(filters, queryset)
+                queryset = filterset.qs
+        else:
+            selected_devices = request.query_params.getlist('selected_devices[]')
+            if not selected_devices:
+                return Response(
+                    {"error": "No devices selected"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            queryset = queryset.filter(pk__in=selected_devices)
+
+        # Create CSV content
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        # Write header
+        header = ['id', 'pool_id', 'dc_id', 'power', 'lifespan', 'hdd_quantity', 
+                 'hdd_unit_size', 'ssd_quantity', 'ssd_unit_size', 'ram_quantity', 
+                 'ram_unit_size', 'gpu_quantity', 'gpu_model_name', 'fan_quantity', 
+                 'psu_total_weight', 'load_rate', 'comment', 'quantity']
+        writer.writerow(header)
+
+        # Get default settings
+        settings = PluginSettings.objects.first()
+        default_power = settings.default_power_watts if settings else 100
+        default_lifespan = (settings.default_usage_period_hours / (24 * 365)) if settings else 5
+
+        # Write data for each device
+        for device in queryset:
+            device_params = get_device_params(device)
+            params = device_params['params'] if device_params else {}
+            
+            # Get power and lifespan from usage parameters or defaults
+            usage = params.get('usage', {})
+            power = usage.get('power_watt', default_power)
+            lifespan = usage.get('duration_of_use_hour', settings.default_usage_period_hours if settings else 43800)
+            lifespan = lifespan / (24 * 365)  # Convert hours to years
+
+            row = [
+                device.name,  # id
+                device.get_pool(),  # pool_id
+                device.site.name if device.site else 'dc-generic-glo',  # dc_id
+                power,  # power
+                lifespan,  # lifespan
+                '', '', '', '', '', '', '', '', '', '', '', '', 1  # Other fields + quantity
+            ]
+            writer.writerow(row)
+
+        # Create the HTTP response with CSV content
+        from datetime import datetime
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        response = HttpResponse(output.getvalue(), content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="devices_inventory_{timestamp}.csv"'
+        return response
+
+    @action(detail=False, methods=['get'])
     def csv_export(self, request):
         from django.http import HttpResponse
         import csv
