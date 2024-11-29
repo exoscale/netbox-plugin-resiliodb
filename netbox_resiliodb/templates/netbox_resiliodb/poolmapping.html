@@ -15,13 +15,13 @@
             </tr>
             <tr>
               <th scope="row">Platform</th>
-              <td>{{ object.platform|hyperlinked_object }}</td>
+              <td>{{ object.platform|linkify }}</td>
             </tr>
             <tr>
               <th scope="row">Device Roles</th>
               <td>
                 {% for role in object.device_roles.all %}
-                  {{ role|hyperlinked_object }}<br/>
+                  {{ role|linkify }}<br/>
                 {% endfor %}
               </td>
             </tr>
