@@ -165,6 +165,10 @@ class LCAImpactDataViewSet(NetBoxModelViewSet):
         response['Content-Disposition'] = f'attachment; filename="devices_impact_{timestamp}.csv"'
         return response
 
+class PoolMappingViewSet(NetBoxModelViewSet):
+    queryset = models.PoolMapping.objects.all()
+    serializer_class = PoolMappingSerializer
+
 class DeviceSyncViewSet(NetBoxModelViewSet):
     queryset = Device.objects.all()
     serializer_class = DeviceSyncSerializer

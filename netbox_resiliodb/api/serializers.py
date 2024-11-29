@@ -77,6 +77,23 @@ class LCAImpactDataSerializer(NetBoxModelSerializer):
             return obj.cache_entry.request_payload
         return None
 
+class PoolMappingSerializer(NetBoxModelSerializer):
+    device_roles = NestedDeviceRoleSerializer(many=True)
+    platform = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.PoolMapping
+        fields = ('id', 'url', 'pool_name', 'platform', 'device_roles')
+
+    def get_platform(self, obj):
+        if obj.platform:
+            return {
+                'id': obj.platform.id,
+                'url': obj.platform.get_absolute_url(),
+                'display': str(obj.platform)
+            }
+        return None
+
 class DeviceSyncSerializer(NetBoxModelSerializer):
     device_id = serializers.IntegerField(required=False)
 
