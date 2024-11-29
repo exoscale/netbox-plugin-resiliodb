@@ -192,3 +192,17 @@ class LCAParamsEditView(generic.ObjectEditView):
 
 class LCAParamsDeleteView(generic.ObjectDeleteView):
     queryset = models.LCAParams.objects.all()
+
+class PoolMappingListView(generic.ObjectListView):
+    queryset = models.PoolMapping.objects.all()
+    table = tables.PoolMappingTable
+
+class PoolMappingView(generic.ObjectView):
+    queryset = models.PoolMapping.objects.all()
+
+class PoolMappingEditView(generic.ObjectEditView):
+    queryset = models.PoolMapping.objects.all()
+    form = forms.PoolMappingForm
+
+class PoolMappingDeleteView(generic.ObjectDeleteView):
+    queryset = models.LCAParams.objects.all()

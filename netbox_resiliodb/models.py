@@ -214,6 +214,25 @@ class LCAImpactIndicatorValue(NetBoxModel):
     def get_absolute_url(self):
         return reverse('plugins:netbox_resiliodb:lcaimpactindicatorvalue', args=[self.pk])
 
+class PoolMapping(NetBoxModel):
+    """
+    Maps pools to platform and device roles for grouping devices.
+    """
+    pool_name = models.CharField(max_length=100)
+    platform = models.CharField(max_length=100, blank=True, null=True)
+    device_roles = models.ManyToManyField(DeviceRole, blank=True)
+
+    class Meta:
+        ordering = ('pool_name',)
+        verbose_name = "Pool Mapping"
+        verbose_name_plural = "Pool Mappings"
+
+    def __str__(self):
+        return f'{self.pool_name}'
+
+    def get_absolute_url(self):
+        return reverse('plugins:netbox_resiliodb:poolmapping', args=[self.pk])
+
 class PluginSettings(NetBoxModel):
     """
     Stores global settings for the plugin.

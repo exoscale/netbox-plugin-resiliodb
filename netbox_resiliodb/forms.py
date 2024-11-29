@@ -65,6 +65,16 @@ class LCAParamsForm(NetBoxModelForm):
             'parameters': forms.Textarea,
         }
 
+class PoolMappingForm(NetBoxModelForm):
+    device_roles = DynamicModelMultipleChoiceField(
+        queryset=DeviceRole.objects.all(),
+        required=False
+    )
+
+    class Meta:
+        model = PoolMapping
+        fields = ['pool_name', 'platform', 'device_roles']
+
 class DeviceResilioFilterForm(FilterForm):
     model = Device
 
