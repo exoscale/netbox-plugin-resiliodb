@@ -75,6 +75,60 @@ class LCAImpactDataViewSet(NetBoxModelViewSet):
         serializer = LCAImpactDataSerializer(impact_data)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['get'])
+    def csv_export(self, request):
+        from django.http import HttpResponse
+        import csv
+        from io import StringIO
+
+        device_id = request.query_params.get('device_id')
+        if not device_id:
+            return Response(
+                {"error": "device_id parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        impact_data = get_object_or_404(models.LCAImpactData, device_id=device_id)
+        
+        # Create CSV content
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        # Write header
+        header = ['hw_id', 'lc_step', 'ADPe', 'ADPf', 'AP', 'CTUe', 'CTUh_c', 'CTUh_nc', 
+                 'Epf', 'Epm', 'Ept', 'GWP', 'GWPf', 'GWPlu', 'IR', 'LU', 'ODP', 'PM', 
+                 'POCP', 'WU', 'TPE', 'GWPb']
+        writer.writerow(header)
+        
+        # Get all indicators for this device
+        indicator_values = impact_data.indicator_values.all()
+        
+        # Create a mapping of indicator codes to values
+        steps = ['BLD', 'DIS', 'USE', 'EOL']
+        step_names = {
+            'BLD': 'manufacturing',
+            'DIS': 'distribution',
+            'USE': 'use',
+            'EOL': 'end_of_life'
+        }
+        
+        # Write data for each lifecycle step
+        for step in steps:
+            row_data = [impact_data.device.name, step_names[step]]
+            # Add values for each indicator in order of header
+            for indicator_code in header[2:]:  # Skip hw_id and lc_step
+                value = 0
+                indicator_value = indicator_values.filter(indicator__code=indicator_code).first()
+                if indicator_value:
+                    value = getattr(indicator_value, step, 0) or 0
+                row_data.append(str(value))
+            writer.writerow(row_data)
+
+        # Create the HTTP response with CSV content
+        response = HttpResponse(output.getvalue(), content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="device_{device_id}_impact.csv"'
+        return response
+
 class DeviceSyncViewSet(NetBoxModelViewSet):
     queryset = Device.objects.all()
     serializer_class = DeviceSyncSerializer
