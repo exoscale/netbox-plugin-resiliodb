@@ -4,4 +4,35 @@
 
 {% block bulk_buttons %}
     {% include 'netbox_resiliodb/sync_button.html' %}
+    {% if perms.dcim.view_device %}
+        <button type="button" class="btn btn-info btn-sm" onclick="downloadCSV()">
+            <i class="mdi mdi-download" aria-hidden="true"></i> Download CSV
+        </button>
+    {% endif %}
 {% endblock bulk_buttons %}
+
+{% block javascript %}
+<script>
+function downloadCSV() {
+    // Get current filter parameters from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const filterParams = {};
+    
+    // Map relevant filter parameters
+    ['site', 'site_id', 'role', 'role_id', 'region', 'region_id', 'lca_impact_status'].forEach(param => {
+        if (urlParams.has(param)) {
+            filterParams[param] = urlParams.get(param);
+        }
+    });
+    
+    // Construct API URL with filters
+    let apiUrl = '/api/plugins/netbox_resiliodb/lca-impact-data/csv_export/';
+    if (Object.keys(filterParams).length > 0) {
+        apiUrl += '?' + new URLSearchParams(filterParams).toString();
+    }
+    
+    // Trigger download
+    window.location.href = apiUrl;
+}
+</script>
+{% endblock javascript %}
