@@ -154,8 +154,10 @@ class LCAImpactDataViewSet(NetBoxModelViewSet):
                 writer.writerow(row_data)
 
         # Create the HTTP response with CSV content
+        from datetime import datetime
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         response = HttpResponse(output.getvalue(), content_type='text/csv')
-        response['Content-Disposition'] = f'attachment; filename="device_{device_id}_impact.csv"'
+        response['Content-Disposition'] = f'attachment; filename="devices_impact_{timestamp}.csv"'
         return response
 
 class DeviceSyncViewSet(NetBoxModelViewSet):
