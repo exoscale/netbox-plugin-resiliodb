@@ -108,28 +108,45 @@ class LCAImpactDataViewSet(NetBoxModelViewSet):
                 )
             queryset = queryset.filter(pk__in=selected_devices)
 
-        # Create CSV content
-        output = StringIO()
-        writer = csv.writer(output)
+        # Split devices into network and server devices
+        network_devices = []
+        server_devices = []
         
-        # Write header
-        header = ['id', 'pool_id', 'dc_id', 'power', 'lifespan', 'hdd_quantity', 
-                 'hdd_unit_size', 'ssd_quantity', 'ssd_unit_size', 'ram_quantity', 
-                 'ram_unit_size', 'gpu_quantity', 'gpu_model_name', 'fan_quantity', 
-                 'psu_total_weight', 'load_rate', 'comment', 'quantity']
-        writer.writerow(header)
+        for device in queryset:
+            device_params = get_device_params(device)
+            if device_params and device_params.get('lca_type') == 'rack_switch_router':
+                network_devices.append(device)
+            else:
+                server_devices.append(device)
 
         # Get default settings
         settings = PluginSettings.objects.first()
         default_power = settings.default_power_watts if settings else 100
         default_lifespan = (settings.default_usage_period_hours / (24 * 365)) if settings else 5
 
-        # Write data for each device
-        for device in queryset:
+        # Create server CSV content
+        server_output = StringIO()
+        server_writer = csv.writer(server_output)
+        server_header = ['id', 'pool_id', 'dc_id', 'power', 'lifespan', 'hdd_quantity', 
+                        'hdd_unit_size', 'ssd_quantity', 'ssd_unit_size', 'ram_quantity', 
+                        'ram_unit_size', 'gpu_quantity', 'gpu_model_name', 'fan_quantity', 
+                        'psu_total_weight', 'load_rate', 'comment', 'quantity']
+        server_writer.writerow(server_header)
+
+        # Create network CSV content
+        network_output = StringIO()
+        network_writer = csv.writer(network_output)
+        network_header = ['id', 'pool_id', 'dc_id', 'power', 'lifespan', 'format',
+                         'number_of_ports', 'cpu_quantity', 'cpu_model_name', 
+                         'cpu_core_number', 'ram_quantity', 'ram_unit_size', 
+                         'fan_quantity', 'quantity', 'comment']
+        network_writer.writerow(network_header)
+
+        # Write server data
+        for device in server_devices:
             device_params = get_device_params(device)
             params = device_params['params'] if device_params else {}
             
-            # Get power and lifespan from usage parameters or defaults
             usage = params.get('usage', {})
             power = usage.get('power_watt', default_power)
             lifespan = usage.get('duration_of_use_hour', settings.default_usage_period_hours if settings else 43800)
@@ -143,13 +160,44 @@ class LCAImpactDataViewSet(NetBoxModelViewSet):
                 lifespan,  # lifespan
                 '', '', '', '', '', '', '', '', '', '', '', '', 1  # Other fields + quantity
             ]
-            writer.writerow(row)
+            server_writer.writerow(row)
 
-        # Create the HTTP response with CSV content
+        # Write network device data
+        for device in network_devices:
+            device_params = get_device_params(device)
+            params = device_params['params'] if device_params else {}
+            
+            usage = params.get('usage', {})
+            power = usage.get('power_watt', default_power)
+            lifespan = usage.get('duration_of_use_hour', settings.default_usage_period_hours if settings else 43800)
+            lifespan = lifespan / (24 * 365)  # Convert hours to years
+
+            row = [
+                device.name,  # id
+                device.get_pool(),  # pool_id
+                device.site.name if device.site else 'dc-generic-glo',  # dc_id
+                power,  # power
+                lifespan,  # lifespan
+                '', '', '', '', '', '', '', 1, ''  # Other fields + quantity + comment
+            ]
+            network_writer.writerow(row)
+
+        # Create ZIP file containing both CSVs
+        import zipfile
+        from io import BytesIO
+        
+        zip_buffer = BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            if server_devices:
+                zip_file.writestr('server_inventory.csv', server_output.getvalue())
+            if network_devices:
+                zip_file.writestr('network_inventory.csv', network_output.getvalue())
+
+        # Create the HTTP response with ZIP content
         from datetime import datetime
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        response = HttpResponse(output.getvalue(), content_type='text/csv')
-        response['Content-Disposition'] = f'attachment; filename="devices_inventory_{timestamp}.csv"'
+        response = HttpResponse(zip_buffer.getvalue(), content_type='application/zip')
+        response['Content-Disposition'] = f'attachment; filename="devices_inventory_{timestamp}.zip"'
         return response
 
     @action(detail=False, methods=['get'])
