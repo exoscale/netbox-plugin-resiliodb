@@ -311,6 +311,22 @@ def get_lca_impact_status(self):
     except ObjectDoesNotExist:
         return "Missing"
 
+def get_pool(self):
+    """
+    Returns the pool name for this device based on platform and role mappings.
+    Returns 'generic' if no matching pool is found.
+    """
+    if not hasattr(self, '_pool_cache'):
+        pool_mappings = PoolMapping.objects.filter(platform=self.platform)
+        for mapping in pool_mappings:
+            if self.role in mapping.device_roles.all():
+                self._pool_cache = mapping.pool_name
+                break
+        else:
+            self._pool_cache = "generic"
+    return self._pool_cache
+
 Device.has_lca_params = has_lca_params
 Device.get_lca_impact_status = get_lca_impact_status
+Device.get_pool = get_pool
 DeviceType.has_lca_params = has_lca_params
