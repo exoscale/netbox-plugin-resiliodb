@@ -80,6 +80,9 @@ class LCAImpactDataSerializer(NetBoxModelSerializer):
 class PoolMappingSerializer(NetBoxModelSerializer):
     device_roles = NestedDeviceRoleSerializer(many=True)
     platform = serializers.SerializerMethodField()
+    url = serializers.HyperlinkedIdentityField(
+        view_name='plugins-api:netbox_resiliodb-api:poolmapping-detail'
+    )
 
     class Meta:
         model = models.PoolMapping
