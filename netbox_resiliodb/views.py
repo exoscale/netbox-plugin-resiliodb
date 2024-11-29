@@ -205,4 +205,4 @@ class PoolMappingEditView(generic.ObjectEditView):
     form = forms.PoolMappingForm
 
 class PoolMappingDeleteView(generic.ObjectDeleteView):
-    queryset = models.LCAParams.objects.all()
+    queryset = models.PoolMapping.objects.all()
