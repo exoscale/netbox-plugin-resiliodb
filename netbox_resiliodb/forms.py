@@ -1,11 +1,12 @@
 from django import forms
 from netbox.forms import NetBoxModelForm
-from utilities.forms.fields import DynamicModelChoiceField
+from utilities.forms.fields import DynamicModelChoiceField, DynamicModelMultipleChoiceField
 from dcim.models import DeviceRole, Site, Region, Device
 from utilities.forms import FilterForm
 from .models import (
     LCAType, Indicator, DeviceRoleLCATypeMapping,
-    SiteCountryMapping, PluginSettings, LCAParams
+    SiteCountryMapping, PluginSettings, LCAParams,
+    PoolMapping
 )
 
 class LCATypeForm(NetBoxModelForm):

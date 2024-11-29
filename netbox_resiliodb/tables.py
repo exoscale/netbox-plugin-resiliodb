@@ -1,7 +1,10 @@
 import django_tables2 as tables
 from netbox.tables import NetBoxTable, columns
 from dcim.models import Device
-from .models import LCAType, Indicator, DeviceRoleLCATypeMapping, SiteCountryMapping, PluginSettings
+from .models import (
+    LCAType, Indicator, DeviceRoleLCATypeMapping, 
+    SiteCountryMapping, PluginSettings, PoolMapping
+)
 
 class LCATypeTable(NetBoxTable):
     name = tables.Column(linkify=True)
