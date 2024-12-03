@@ -9,7 +9,7 @@ def create_default_lca_types(apps, schema_editor):
             'resilio_endpoint': 'blade_enclosure',
             'description': 'Chassis housing multiple blade servers, including power supplies and cooling',
             'default_payload': {
-                "usage_percent": 100,
+                "usage_percent": 1,
                 "rack_unit": 5,
                 "wanted_name": "blade_enclosure",
                 "usage": {
@@ -24,7 +24,7 @@ def create_default_lca_types(apps, schema_editor):
             'resilio_endpoint': 'blade_server',
             'description': 'High-density compute server designed for blade enclosures',
             'default_payload': {
-                "usage_percent": 100,
+                "usage_percent": 1,
                 "wanted_name": "blade_server",
                 "cpus": [{"name": "intel Intel Core i5", "die_surface_mm2": 126, "litho_nm": 14}],
                 "rams": [{"size_gb": 8}, {"size_gb": 8}],
@@ -39,7 +39,7 @@ def create_default_lca_types(apps, schema_editor):
             'resilio_endpoint': 'rack_server',
             'description': 'Standard rack-mountable server',
             'default_payload': {
-                "usage_percent": 100,
+                "usage_percent": 1,
                 "wanted_name": "rack_server",
                 "rack_unit": 1,
                 "cpus": [{"name": "intel Intel Core i5", "die_surface_mm2": 126, "litho_nm": 14}],
@@ -55,7 +55,7 @@ def create_default_lca_types(apps, schema_editor):
             'resilio_endpoint': 'tower_server',
             'description': 'Standalone server in tower form factor',
             'default_payload': {
-                "usage_percent": 100,
+                "usage_percent": 1,
                 "wanted_name": "tower_server",
                 "cpus": [{"name": "intel Intel Core i5", "die_surface_mm2": 126, "litho_nm": 14}],
                 "rams": [{"size_gb": 8}, {"size_gb": 8}],
@@ -83,7 +83,7 @@ def create_default_lca_types(apps, schema_editor):
             'description': 'Portable computer system',
             'default_payload': {
                 "name": "Lenovo IdeaPad 130-15",
-                "usage_percent": 100,
+                "usage_percent": 1,
                 "wanted_name": "Lenovo 130-15",
                 "cpus": [{"name": "intel Intel Core i5", "die_surface_mm2": 126, "litho_nm": 14}],
                 "rams": [{"size_gb": 8}],
@@ -99,7 +99,7 @@ def create_default_lca_types(apps, schema_editor):
             'resilio_endpoint': 'storage_system',
             'description': 'Dedicated storage array or system',
             'default_payload': {
-                "usage_percent": 100,
+                "usage_percent": 1,
                 "wanted_name": "storageSystem",
                 "ssd_disks": [{"size_gb": 564, "technology": "TLC", "casing": "casing_M2"}],
                 "hdd_disks": {"quantity": 1},
@@ -111,7 +111,7 @@ def create_default_lca_types(apps, schema_editor):
             'resilio_endpoint': 'computer_monitor',
             'description': 'Display device for computers',
             'default_payload': {
-                "usage_percent": 100,
+                "usage_percent": 1,
                 "wanted_name": "computerMonitor",
                 "screen_size": 24,
                 "screen_format": "16/9",
@@ -124,7 +124,7 @@ def create_default_lca_types(apps, schema_editor):
             'resilio_endpoint': 'television',
             'description': 'Display device for video content',
             'default_payload': {
-                "usage_percent": 100,
+                "usage_percent": 1,
                 "wanted_name": "television",
                 "screen_size": 24,
                 "screen_format": "16/9",
@@ -137,7 +137,7 @@ def create_default_lca_types(apps, schema_editor):
             'resilio_endpoint': 'desktop',
             'description': 'Standard desktop workstation',
             'default_payload': {
-                "usage_percent": 100,
+                "usage_percent": 1,
                 "wanted_name": "desktop",
                 "cpus": [{"name": "intel Intel Core i5", "die_surface_mm2": 126, "litho_nm": 14}],
                 "rams": [{"size_gb": 8}, {"size_gb": 8}],
