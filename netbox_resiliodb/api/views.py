@@ -15,6 +15,7 @@ from .serializers import (
     PluginSettingsSerializer,
     DeviceSyncSerializer,
     LCAImpactDataSerializer,
+    LCAImpactIndicatorValueSerializer,
     PoolMappingSerializer
 )
 from ..jobs import ResilioSyncJob
