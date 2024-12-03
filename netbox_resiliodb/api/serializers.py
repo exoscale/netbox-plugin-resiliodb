@@ -80,7 +80,7 @@ class LCAImpactDataSerializer(NetBoxModelSerializer):
 
     class Meta:
         model = models.LCAImpactData
-        fields = ('id', 'device', 'calculated_at', 'cache_payload', 'indicator_values')
+        fields = ('id', 'device', 'cache_payload', 'indicator_values')
 
     def get_cache_payload(self, obj):
         if obj.cache_entry:
