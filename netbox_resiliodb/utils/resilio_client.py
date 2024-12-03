@@ -131,6 +131,10 @@ class ResilioDBClient:
                 json=payload,
                 headers=headers
             )
+            if response.status_code == 400:
+                error_msg = response.json().get('error', 'Unknown error')
+                logger.error(f"ResilioDB API validation error: {error_msg}")
+                raise ValueError(f"ResilioDB API validation error: {error_msg}")
             response.raise_for_status()
 
             response_data = {
