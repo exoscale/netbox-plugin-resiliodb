@@ -21,9 +21,9 @@ class DeviceResilioFilterSet(NetBoxModelFilterSet):
         method='filter_lca_impact_status',
         label='LCA Impact Data Status',
         choices=(
-            ('yes', 'Current'),
-            ('no', 'Missing'),
-            ('outdated', 'Outdated')
+            ('Current', 'Current'),
+            ('Missing', 'Missing'),
+            ('Outdated', 'Outdated')
         )
     )
 
@@ -54,10 +54,10 @@ class DeviceResilioFilterSet(NetBoxModelFilterSet):
         return queryset.exclude(device_type_id__in=devicetype_ids_with_params)
 
     def filter_lca_impact_status(self, queryset, name, value):
-        if value == 'no':
-            return queryset.filter(pk__in=[d.pk for d in queryset if d.get_lca_impact_status() == 0])
-        elif value == 'yes':
-            return queryset.filter(pk__in=[d.pk for d in queryset if d.get_lca_impact_status() == 1])
-        elif value == 'outdated':
-            return queryset.filter(pk__in=[d.pk for d in queryset if d.get_lca_impact_status() == 2])
+        if value == 'Missing':
+            return queryset.filter(pk__in=[d.pk for d in queryset if d.get_lca_impact_status() == "Missing"])
+        elif value == 'Current':
+            return queryset.filter(pk__in=[d.pk for d in queryset if d.get_lca_impact_status() == "Current"])
+        elif value == 'Outdated':
+            return queryset.filter(pk__in=[d.pk for d in queryset if d.get_lca_impact_status() == "Outdated"])
         return queryset

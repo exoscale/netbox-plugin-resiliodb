@@ -118,7 +118,7 @@ class ResilioDBClient:
             # Use session without system proxy
             session = requests.Session()
             session.trust_env = False
-
+            # TODO: ADD logger output to display the matching curl command for debugging purposes
             response = session.post(
                 endpoint,
                 json=payload,
