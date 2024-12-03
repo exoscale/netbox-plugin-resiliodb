@@ -118,11 +118,18 @@ class ResilioDBClient:
             # Use session without system proxy
             session = requests.Session()
             session.trust_env = False
-            # TODO: ADD logger output to display the matching curl command for debugging purposes
+            # Log equivalent curl command for debugging
+            headers = self._get_headers()
+            curl_cmd = f"curl -X POST '{endpoint}' \\\n"
+            for header, value in headers.items():
+                curl_cmd += f"  -H '{header}: {value}' \\\n"
+            curl_cmd += f"  -d '{json.dumps(payload)}'"
+            logger.debug(f"Equivalent curl command:\n{curl_cmd}")
+
             response = session.post(
                 endpoint,
                 json=payload,
-                headers=self._get_headers()
+                headers=headers
             )
             response.raise_for_status()
 
