@@ -114,7 +114,7 @@ class ResilioDBClient:
 
         # Make API request
         try:
-            endpoint = f"{self.base_url}/api/{lca_type}"
+            endpoint = f"{self.base_url}/api/{lca_type}/{self.api_version}"
             # Use session without system proxy
             session = requests.Session()
             session.trust_env = False
