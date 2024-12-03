@@ -59,6 +59,11 @@ urlpatterns = [
     path('lca-impact-data/<int:pk>/', views.LCAImpactDataView.as_view(), name='lcaimpactdata'),
     path('lca-impact-data/<int:pk>/changelog/', ObjectChangeLogView.as_view(), name='lcaimpactdata_changelog', kwargs={'model': models.LCAImpactData}),
 
+    # LCA Impact Indicator Values
+    path('lca-impact-indicator-values/', views.LCAImpactIndicatorValueListView.as_view(), name='lcaimpactindicatorvalue_list'),
+    path('lca-impact-indicator-values/<int:pk>/', views.LCAImpactIndicatorValueView.as_view(), name='lcaimpactindicatorvalue'),
+    path('lca-impact-indicator-values/<int:pk>/changelog/', ObjectChangeLogView.as_view(), name='lcaimpactindicatorvalue_changelog', kwargs={'model': models.LCAImpactIndicatorValue}),
+
     # LCA Parameters
     path('lca-params/', views.LCAParamsView.as_view(), name='lcaparams_list'),
     path('lca-params/add/', views.LCAParamsEditView.as_view(), name='lcaparams_add'),

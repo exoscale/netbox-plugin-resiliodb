@@ -214,6 +214,12 @@ class LCAImpactDataListView(generic.ObjectListView):
 class LCAImpactDataView(generic.ObjectView):
     queryset = models.LCAImpactData.objects.all()
 
+class LCAImpactIndicatorValueListView(generic.ObjectListView):
+    queryset = models.LCAImpactIndicatorValue.objects.all()
+
+class LCAImpactIndicatorValueView(generic.ObjectView):
+    queryset = models.LCAImpactIndicatorValue.objects.all()
+
 class DashboardView(TemplateView):
     template_name = 'netbox_resiliodb/dashboard.html'
 
