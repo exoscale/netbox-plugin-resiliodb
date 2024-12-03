@@ -1,19 +1,18 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block content %}
+{% extends 'generic/_base.html' %} {% load static %} {% block content %}
 <div class="row">
     <div class="col-12">
         <div class="card">
             <h5 class="card-header">Environmental Impact by Site</h5>
             <div class="card-body">
                 {% for indicator_code, data in indicator_data.items %}
-                    <div class="mb-5">
-                        <h6 class="text-center">{{ data.name }} ({{ data.unit }})</h6>
-                        <div style="height: 400px;">
-                            <canvas id="chart_{{ indicator_code }}"></canvas>
-                        </div>
+                <div class="mb-5">
+                    <h6 class="text-center">
+                        {{ data.name }} ({{ data.unit }})
+                    </h6>
+                    <div style="height: 400px">
+                        <canvas id="chart_{{ indicator_code }}"></canvas>
                     </div>
+                </div>
                 {% endfor %}
             </div>
         </div>
@@ -23,10 +22,10 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     const indicator_data = {{ indicator_data|safe }};
-    
+
     for (const [indicator_code, data] of Object.entries(indicator_data)) {
         const ctx = document.getElementById(`chart_${indicator_code}`);
-        
+
         // Prepare data for Chart.js
         const sites = data.sites.map(s => s.site);
         const datasets = [
