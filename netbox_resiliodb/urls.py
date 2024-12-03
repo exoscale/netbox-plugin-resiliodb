@@ -54,6 +54,11 @@ urlpatterns = [
     path('pool-mappings/<int:pk>/delete/', views.PoolMappingDeleteView.as_view(), name='poolmapping_delete'),
     path('pool-mappings/<int:pk>/changelog/', ObjectChangeLogView.as_view(), name='poolmapping_changelog', kwargs={'model': models.PoolMapping}),
 
+    # LCA Impact Data
+    path('lca-impact-data/', views.LCAImpactDataListView.as_view(), name='lcaimpactdata_list'),
+    path('lca-impact-data/<int:pk>/', views.LCAImpactDataView.as_view(), name='lcaimpactdata'),
+    path('lca-impact-data/<int:pk>/changelog/', ObjectChangeLogView.as_view(), name='lcaimpactdata_changelog', kwargs={'model': models.LCAImpactData}),
+
     # LCA Parameters
     path('lca-params/', views.LCAParamsView.as_view(), name='lcaparams_list'),
     path('lca-params/add/', views.LCAParamsEditView.as_view(), name='lcaparams_add'),

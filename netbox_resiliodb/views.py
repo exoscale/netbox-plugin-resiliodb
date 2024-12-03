@@ -208,6 +208,12 @@ class PoolMappingEditView(generic.ObjectEditView):
 class PoolMappingDeleteView(generic.ObjectDeleteView):
     queryset = models.PoolMapping.objects.all()
 
+class LCAImpactDataListView(generic.ObjectListView):
+    queryset = models.LCAImpactData.objects.all()
+
+class LCAImpactDataView(generic.ObjectView):
+    queryset = models.LCAImpactData.objects.all()
+
 class DashboardView(TemplateView):
     template_name = 'netbox_resiliodb/dashboard.html'
 
