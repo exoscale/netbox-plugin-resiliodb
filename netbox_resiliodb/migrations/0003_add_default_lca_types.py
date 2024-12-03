@@ -68,10 +68,10 @@ def create_default_lca_types(apps, schema_editor):
         },
         {
             'name': 'Network Switch/Router',
-            'resilio_endpoint': 'rack_switch_router',
+            'resilio_endpoint': 'rack_switch-router',
             'description': 'Network switching and routing equipment',
             'default_payload': {
-                "wanted_name": "switch",
+                "wanted_name": "rack_switch-router",
                 "port_number": 42,
                 "rack_unit": 1,
                 "usage": {"duration_of_use_hour": 43800, "geography": "Switzerland"}
@@ -84,7 +84,7 @@ def create_default_lca_types(apps, schema_editor):
             'default_payload': {
                 "name": "Lenovo IdeaPad 130-15",
                 "usage_percent": 1,
-                "wanted_name": "Lenovo 130-15",
+                "wanted_name": "laptop",
                 "cpus": [{"name": "intel Intel Core i5", "die_surface_mm2": 126, "litho_nm": 14}],
                 "rams": [{"size_gb": 8}],
                 "ssd_disks": [{"size_gb": 564, "technology": "TLC", "casing": "casing_M2"}],
@@ -100,7 +100,7 @@ def create_default_lca_types(apps, schema_editor):
             'description': 'Dedicated storage array or system',
             'default_payload': {
                 "usage_percent": 1,
-                "wanted_name": "storageSystem",
+                "wanted_name": "storage_system",
                 "ssd_disks": [{"size_gb": 564, "technology": "TLC", "casing": "casing_M2"}],
                 "hdd_disks": {"quantity": 1},
                 "usage": {"power_watt": 900, "duration_of_use_hour": 43800, "geography": "Switzerland"}
@@ -112,7 +112,7 @@ def create_default_lca_types(apps, schema_editor):
             'description': 'Display device for computers',
             'default_payload': {
                 "usage_percent": 1,
-                "wanted_name": "computerMonitor",
+                "wanted_name": "computer_monitor",
                 "screen_size": 24,
                 "screen_format": "16/9",
                 "screen_type": "LCD",
