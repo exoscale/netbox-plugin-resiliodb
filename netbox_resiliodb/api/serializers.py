@@ -64,13 +64,23 @@ class PluginSettingsSerializer(NetBoxModelSerializer):
         fields = ('id', 'url', 'api_url', 'api_key', 'api_version', 'default_usage_period_hours',
                  'default_power_watts', 'resync_on_api_version_change', 'created', 'last_updated')
 
+class LCAImpactIndicatorValueSerializer(NetBoxModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        view_name='plugins-api:netbox_resiliodb-api:lcaimpactindicatorvalue-detail'
+    )
+
+    class Meta:
+        model = models.LCAImpactIndicatorValue
+        fields = ('id', 'url', 'impact_data', 'indicator', 'total_value', 'BLD', 'DIS', 'USE', 'EOL')
+
 class LCAImpactDataSerializer(NetBoxModelSerializer):
     device = NestedDeviceSerializer()
     cache_payload = serializers.SerializerMethodField()
+    indicator_values = LCAImpactIndicatorValueSerializer(many=True, read_only=True)
 
     class Meta:
         model = models.LCAImpactData
-        fields = ('id', 'device', 'calculated_at', 'cache_payload')
+        fields = ('id', 'device', 'calculated_at', 'cache_payload', 'indicator_values')
 
     def get_cache_payload(self, obj):
         if obj.cache_entry:
