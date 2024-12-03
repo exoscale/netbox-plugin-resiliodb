@@ -59,9 +59,13 @@ class PluginSettingsViewSet(NetBoxModelViewSet):
 
 from dcim.models import Device
 
+class LCAImpactIndicatorValueViewSet(NetBoxModelViewSet):
+    queryset = models.LCAImpactIndicatorValue.objects.all()
+    serializer_class = LCAImpactIndicatorValueSerializer
+
 class LCAImpactDataViewSet(NetBoxModelViewSet):
     queryset = models.LCAImpactData.objects.all()
-    serializer_class = LCAParamsSerializer
+    serializer_class = LCAImpactDataSerializer
 
     @action(detail=False, methods=['get'])
     def by_device(self, request):
