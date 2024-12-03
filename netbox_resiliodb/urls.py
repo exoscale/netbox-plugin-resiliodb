@@ -3,6 +3,9 @@ from netbox.views.generic import ObjectChangeLogView
 from . import models, views
 
 urlpatterns = [
+    # Dashboard
+    path('dashboard/', views.DashboardView.as_view(), name='dashboard'),
+    
     # LCA Types
     path('lca-types/', views.LCATypeListView.as_view(), name='lcatype_list'),
     path('lca-types/add/', views.LCATypeEditView.as_view(), name='lcatype_add'),

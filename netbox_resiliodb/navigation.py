@@ -2,6 +2,11 @@ from netbox.plugins import PluginMenuItem, PluginMenu
 
 menu_items = (
     PluginMenuItem(
+        link='plugins:netbox_resiliodb:dashboard',
+        link_text='Dashboard',
+        permissions=['dcim.view_device']
+    ),
+    PluginMenuItem(
         link='plugins:netbox_resiliodb:device_list',
         link_text='Devices',
         permissions=['dcim.view_device']

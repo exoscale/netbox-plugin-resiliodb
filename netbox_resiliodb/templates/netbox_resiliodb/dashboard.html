@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <h5 class="card-header">Environmental Impact by Site</h5>
+            <div class="card-body">
+                {% for indicator_code, data in indicator_data.items %}
+                    <div class="mb-5">
+                        <h6 class="text-center">{{ data.name }} ({{ data.unit }})</h6>
+                        <div style="height: 400px;">
+                            <canvas id="chart_{{ indicator_code }}"></canvas>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const indicator_data = {{ indicator_data|safe }};
+    
+    for (const [indicator_code, data] of Object.entries(indicator_data)) {
+        const ctx = document.getElementById(`chart_${indicator_code}`);
+        
+        // Prepare data for Chart.js
+        const sites = data.sites.map(s => s.site);
+        const datasets = [
+            {
+                label: 'End of Life',
+                data: data.sites.map(s => s.steps.EOL),
+                backgroundColor: '#F44336',
+                stack: 'Stack 0',
+            },
+            {
+                label: 'Use',
+                data: data.sites.map(s => s.steps.USE),
+                backgroundColor: '#9C27B0',
+                stack: 'Stack 0',
+            },
+            {
+                label: 'Distribution',
+                data: data.sites.map(s => s.steps.DIS),
+                backgroundColor: '#FF9800',
+                stack: 'Stack 0',
+            },
+            {
+                label: 'Building',
+                data: data.sites.map(s => s.steps.BLD),
+                backgroundColor: '#2196F3',
+                stack: 'Stack 0',
+            }
+        ];
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: sites,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        stacked: true,
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: `${data.name} by Site and Life Cycle Step`
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.raw.toFixed(2)} ${data.unit}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock content %}

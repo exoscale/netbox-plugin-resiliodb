@@ -1,6 +1,7 @@
 import logging
 from netbox.views import generic
-from dcim.models import ModuleType, Device
+from django.views.generic import TemplateView
+from dcim.models import ModuleType, Device, Site
 from dcim.filtersets import DeviceFilterSet
 from django.contrib.contenttypes.models import ContentType
 from . import models, tables, forms, filtersets
@@ -206,3 +207,62 @@ class PoolMappingEditView(generic.ObjectEditView):
 
 class PoolMappingDeleteView(generic.ObjectDeleteView):
     queryset = models.PoolMapping.objects.all()
+
+class DashboardView(TemplateView):
+    template_name = 'netbox_resiliodb/dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Get all sites
+        sites = Site.objects.all()
+        
+        # Get all indicators
+        indicators = models.Indicator.objects.all()
+        
+        # Initialize data structure
+        indicator_data = {}
+        
+        for indicator in indicators:
+            site_data = []
+            for site in sites:
+                # Get all devices in this site
+                devices = Device.objects.filter(site=site)
+                
+                # Initialize step values
+                steps = {
+                    'BLD': 0,
+                    'DIS': 0,
+                    'USE': 0,
+                    'EOL': 0
+                }
+                
+                # Sum up values for all devices in this site
+                for device in devices:
+                    try:
+                        impact_data = device.lca_impact_data
+                        if impact_data:
+                            indicator_value = impact_data.indicator_values.filter(
+                                indicator=indicator
+                            ).first()
+                            if indicator_value:
+                                steps['BLD'] += indicator_value.BLD or 0
+                                steps['DIS'] += indicator_value.DIS or 0
+                                steps['USE'] += indicator_value.USE or 0
+                                steps['EOL'] += indicator_value.EOL or 0
+                    except:
+                        continue
+                
+                site_data.append({
+                    'site': site.name,
+                    'steps': steps
+                })
+            
+            indicator_data[indicator.code] = {
+                'name': indicator.name,
+                'unit': indicator.unit,
+                'sites': site_data
+            }
+        
+        context['indicator_data'] = indicator_data
+        return context
