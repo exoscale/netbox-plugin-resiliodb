@@ -1,77 +1,136 @@
+from dcim.api.nested_serializers import (
+    NestedDeviceRoleSerializer,
+    NestedDeviceSerializer,
+    NestedRegionSerializer,
+    NestedSiteSerializer,
+)
+from dcim.models import Device
+from netbox.api.serializers import NetBoxModelSerializer
 from rest_framework import serializers
 
-from netbox.api.serializers import NetBoxModelSerializer, WritableNestedSerializer
-from dcim.api.nested_serializers import NestedDeviceRoleSerializer, NestedSiteSerializer, NestedRegionSerializer, NestedDeviceSerializer
 from .. import models
-from dcim.models import ModuleType, Device
+
 
 class LCATypeSerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(
-        view_name='plugins-api:netbox_resiliodb-api:lcatype-detail'
+        view_name="plugins-api:netbox_resiliodb-api:lcatype-detail"
     )
 
     class Meta:
         model = models.LCAType
-        fields = ('id', 'url', 'name', 'resilio_endpoint', 'description', 'default_payload', 'created', 'last_updated')
+        fields = (
+            "id",
+            "url",
+            "name",
+            "resilio_endpoint",
+            "description",
+            "default_payload",
+            "created",
+            "last_updated",
+        )
+
 
 class IndicatorSerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(
-        view_name='plugins-api:netbox_resiliodb-api:indicator-detail'
+        view_name="plugins-api:netbox_resiliodb-api:indicator-detail"
     )
 
     class Meta:
         model = models.Indicator
-        fields = ('id', 'url', 'code', 'name', 'unit', 'description', 'created', 'last_updated')
+        fields = (
+            "id",
+            "url",
+            "code",
+            "name",
+            "unit",
+            "description",
+            "created",
+            "last_updated",
+        )
+
 
 class DeviceRoleLCATypeMappingSerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(
-        view_name='plugins-api:netbox_resiliodb-api:devicerolelcatypemapping-detail'
+        view_name="plugins-api:netbox_resiliodb-api:devicerolelcatypemapping-detail"
     )
     device_role = NestedDeviceRoleSerializer()
     lca_type = LCATypeSerializer()
 
     class Meta:
         model = models.DeviceRoleLCATypeMapping
-        fields = ('id', 'url', 'device_role', 'lca_type', 'created', 'last_updated')
+        fields = ("id", "url", "device_role", "lca_type", "created", "last_updated")
+
 
 class SiteCountryMappingSerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(
-        view_name='plugins-api:netbox_resiliodb-api:sitecountrymapping-detail'
+        view_name="plugins-api:netbox_resiliodb-api:sitecountrymapping-detail"
     )
     site = NestedSiteSerializer(required=False)
     region = NestedRegionSerializer(required=False)
 
     class Meta:
         model = models.SiteCountryMapping
-        fields = ('id', 'url', 'site', 'region', 'country', 'created', 'last_updated')
+        fields = ("id", "url", "site", "region", "country", "created", "last_updated")
+
 
 class LCAParamsSerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(
-        view_name='plugins-api:netbox_resiliodb-api:lcaparams-detail'
+        view_name="plugins-api:netbox_resiliodb-api:lcaparams-detail"
     )
 
     class Meta:
         model = models.LCAParams
-        fields = ('id', 'url', 'content_type', 'object_id', 'parameters', 'created', 'last_updated')
+        fields = (
+            "id",
+            "url",
+            "content_type",
+            "object_id",
+            "parameters",
+            "created",
+            "last_updated",
+        )
+
 
 class PluginSettingsSerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(
-        view_name='plugins-api:netbox_resiliodb-api:pluginsettings-detail'
+        view_name="plugins-api:netbox_resiliodb-api:pluginsettings-detail"
     )
 
     class Meta:
         model = models.PluginSettings
-        fields = ('id', 'url', 'api_url', 'api_key', 'api_version', 'default_usage_period_hours',
-                 'default_power_watts', 'resync_on_api_version_change', 'created', 'last_updated')
+        fields = (
+            "id",
+            "url",
+            "api_url",
+            "api_key",
+            "api_version",
+            "default_usage_period_hours",
+            "default_power_watts",
+            "resync_on_api_version_change",
+            "created",
+            "last_updated",
+        )
+
 
 class LCAImpactIndicatorValueSerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(
-        view_name='plugins-api:netbox_resiliodb-api:lcaimpactindicatorvalue-detail'
+        view_name="plugins-api:netbox_resiliodb-api:lcaimpactindicatorvalue-detail"
     )
 
     class Meta:
         model = models.LCAImpactIndicatorValue
-        fields = ('id', 'url', 'impact_data', 'indicator', 'total_value', 'BLD', 'DIS', 'USE', 'EOL')
+        fields = (
+            "id",
+            "url",
+            "impact_data",
+            "indicator",
+            "total_value",
+            "BLD",
+            "DIS",
+            "USE",
+            "EOL",
+        )
+
 
 class LCAImpactDataSerializer(NetBoxModelSerializer):
     device = NestedDeviceSerializer()
@@ -80,36 +139,38 @@ class LCAImpactDataSerializer(NetBoxModelSerializer):
 
     class Meta:
         model = models.LCAImpactData
-        fields = ('id', 'device', 'cache_payload', 'indicator_values')
+        fields = ("id", "device", "cache_payload", "indicator_values")
 
     def get_cache_payload(self, obj):
         if obj.cache_entry:
             return obj.cache_entry.request_payload
         return None
 
+
 class PoolMappingSerializer(NetBoxModelSerializer):
     device_roles = NestedDeviceRoleSerializer(many=True)
     platform = serializers.SerializerMethodField()
     url = serializers.HyperlinkedIdentityField(
-        view_name='plugins-api:netbox_resiliodb-api:poolmapping-detail'
+        view_name="plugins-api:netbox_resiliodb-api:poolmapping-detail"
     )
 
     class Meta:
         model = models.PoolMapping
-        fields = ('id', 'url', 'pool_name', 'platform', 'device_roles')
+        fields = ("id", "url", "pool_name", "platform", "device_roles")
 
     def get_platform(self, obj):
         if obj.platform:
             return {
-                'id': obj.platform.id,
-                'url': obj.platform.get_absolute_url(),
-                'display': str(obj.platform)
+                "id": obj.platform.id,
+                "url": obj.platform.get_absolute_url(),
+                "display": str(obj.platform),
             }
         return None
+
 
 class DeviceSyncSerializer(NetBoxModelSerializer):
     device_id = serializers.IntegerField(required=False)
 
     class Meta:
         model = Device
-        fields = ('device_id',)
+        fields = ("device_id",)

@@ -5,16 +5,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dcim', '0190_nested_modules'),
-        ('netbox_resiliodb', '0005_alter_lcaparams_unique_together_and_more'),
+        ("dcim", "0190_nested_modules"),
+        ("netbox_resiliodb", "0005_alter_lcaparams_unique_together_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='devicerolelcatypemapping',
-            name='device_role',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='lca_mappings', to='dcim.devicerole'),
+            model_name="devicerolelcatypemapping",
+            name="device_role",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="lca_mappings",
+                to="dcim.devicerole",
+            ),
         ),
     ]

@@ -1,0 +1,11 @@
+[project]
+name = "netbox-resiliodb"
+version = "0.1"
+description = "ResilioDB Netbox Integration"
+requires-python = ">=3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "ruff==0.15.4",
+]

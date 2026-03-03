@@ -5,21 +5,30 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dcim', '0190_nested_modules'),
-        ('netbox_resiliodb', '0007_pluginsettings_access_token_and_more'),
+        ("dcim", "0190_nested_modules"),
+        ("netbox_resiliodb", "0007_pluginsettings_access_token_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='lcaimpactdata',
-            name='cache_entry',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='impact_data', to='netbox_resiliodb.lcacache'),
+            model_name="lcaimpactdata",
+            name="cache_entry",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="impact_data",
+                to="netbox_resiliodb.lcacache",
+            ),
         ),
         migrations.AlterField(
-            model_name='lcaimpactdata',
-            name='device',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='lca_impact_data', to='dcim.device'),
+            model_name="lcaimpactdata",
+            name="device",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="lca_impact_data",
+                to="dcim.device",
+            ),
         ),
     ]

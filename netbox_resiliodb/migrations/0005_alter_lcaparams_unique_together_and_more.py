@@ -4,25 +4,28 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('contenttypes', '0002_remove_content_type_name'),
-        ('extras', '0121_customfield_related_object_filter'),
-        ('netbox_resiliodb', '0004_add_default_indicators'),
+        ("contenttypes", "0002_remove_content_type_name"),
+        ("extras", "0121_customfield_related_object_filter"),
+        ("netbox_resiliodb", "0004_add_default_indicators"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='lcaparams',
+            name="lcaparams",
             unique_together=set(),
         ),
         migrations.AlterField(
-            model_name='pluginsettings',
-            name='id',
+            model_name="pluginsettings",
+            name="id",
             field=models.AutoField(primary_key=True, serialize=False),
         ),
         migrations.AddConstraint(
-            model_name='lcaparams',
-            constraint=models.UniqueConstraint(fields=('content_type', 'object_id'), name='unique_lcaparams_per_object', violation_error_message='LCA Parameters already exist for this object'),
+            model_name="lcaparams",
+            constraint=models.UniqueConstraint(
+                fields=("content_type", "object_id"),
+                name="unique_lcaparams_per_object",
+                violation_error_message="LCA Parameters already exist for this object",
+            ),
         ),
     ]
