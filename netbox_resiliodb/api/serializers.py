@@ -1,8 +1,8 @@
-from dcim.api.nested_serializers import (
-    NestedDeviceRoleSerializer,
-    NestedDeviceSerializer,
-    NestedRegionSerializer,
-    NestedSiteSerializer,
+from dcim.api.serializers import (
+    DeviceRoleSerializer,
+    DeviceSerializer,
+    RegionSerializer,
+    SiteSerializer,
 )
 from dcim.models import Device
 from netbox.api.serializers import NetBoxModelSerializer
@@ -53,7 +53,7 @@ class DeviceRoleLCATypeMappingSerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name="plugins-api:netbox_resiliodb-api:devicerolelcatypemapping-detail"
     )
-    device_role = NestedDeviceRoleSerializer()
+    device_role = DeviceRoleSerializer(nested=True)
     lca_type = LCATypeSerializer()
 
     class Meta:
@@ -65,8 +65,8 @@ class SiteCountryMappingSerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name="plugins-api:netbox_resiliodb-api:sitecountrymapping-detail"
     )
-    site = NestedSiteSerializer(required=False)
-    region = NestedRegionSerializer(required=False)
+    site = SiteSerializer(nested=True, required=False)
+    region = RegionSerializer(nested=True, required=False)
 
     class Meta:
         model = models.SiteCountryMapping
@@ -133,7 +133,7 @@ class LCAImpactIndicatorValueSerializer(NetBoxModelSerializer):
 
 
 class LCAImpactDataSerializer(NetBoxModelSerializer):
-    device = NestedDeviceSerializer()
+    device = DeviceSerializer(nested=True)
     cache_payload = serializers.SerializerMethodField()
     indicator_values = LCAImpactIndicatorValueSerializer(many=True, read_only=True)
 
@@ -148,7 +148,7 @@ class LCAImpactDataSerializer(NetBoxModelSerializer):
 
 
 class PoolMappingSerializer(NetBoxModelSerializer):
-    device_roles = NestedDeviceRoleSerializer(many=True)
+    device_roles = DeviceRoleSerializer(nested=True, many=True)
     platform = serializers.SerializerMethodField()
     url = serializers.HyperlinkedIdentityField(
         view_name="plugins-api:netbox_resiliodb-api:poolmapping-detail"

@@ -1,8 +1,15 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.package-data]
+netbox_resiliodb = ["templates/**/*.html"]
+
 [project]
 name = "netbox-resiliodb"
 version = "0.1"
 description = "ResilioDB Netbox Integration"
-requires-python = ">=3.13"
+requires-python = ">=3.10"
 dependencies = []
 
 [dependency-groups]

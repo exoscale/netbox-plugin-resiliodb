@@ -25,10 +25,19 @@ class ResilioSyncJob(JobRunner):
 
     def run(self, *args, **kwargs):
         logger.info("Starting ResilioDB sync job")
-        device = self.job.object
-        if not device:
-            logger.error("Device not found")
+        from dcim.models import Device
+
+        device_id = kwargs.get("device_id")
+        if not device_id:
+            logger.error("No device_id provided in job kwargs")
             return
+
+        try:
+            device = Device.objects.get(id=device_id)
+        except Device.DoesNotExist:
+            logger.error(f"Device with id {device_id} not found")
+            return
+
         logger.info(f"Processing device: {device.name} (ID: {device.id})")
         from .models import Indicator, LCAImpactData, LCAImpactIndicatorValue
         from .utils.lca_params import get_device_params

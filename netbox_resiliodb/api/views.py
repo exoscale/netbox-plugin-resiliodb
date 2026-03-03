@@ -432,10 +432,7 @@ class DeviceSyncViewSet(NetBoxModelViewSet):
         if device_id:
             # Single device from detail view
             device = Device.objects.get(id=device_id)
-            job = ResilioSyncJob.enqueue_once(instance=device)
-            with open("/tmp/netbox_api_debug.log", "a") as f:
-                f.write(f"Enqueued job for device {device.name}: {job}\n")
-                f.flush()
+            ResilioSyncJob.enqueue(device_id=device.id)
         elif select_all:
             # All devices (with filters) from list view
             from ..filtersets import DeviceResilioFilterSet
@@ -443,20 +440,12 @@ class DeviceSyncViewSet(NetBoxModelViewSet):
             queryset = Device.objects.all()
             filterset = DeviceResilioFilterSet(filters, queryset)
             filtered_devices = filterset.qs
-            # Enqueue each filtered device
             for device in filtered_devices:
-                job = ResilioSyncJob.enqueue_once(instance=device)
-                with open("/tmp/netbox_api_debug.log", "a") as f:
-                    f.write(f"Enqueued job for device {device.name}: {job}\n")
-                    f.flush()
+                ResilioSyncJob.enqueue(device_id=device.id)
         elif selected_devices:
             # Selected devices from list view
-            for device_id in selected_devices:
-                device = Device.objects.get(id=device_id)
-                job = ResilioSyncJob.enqueue_once(instance=device)
-                with open("/tmp/netbox_api_debug.log", "a") as f:
-                    f.write(f"Enqueued job for device {device.name}: {job}\n")
-                    f.flush()
+            for did in selected_devices:
+                ResilioSyncJob.enqueue(device_id=did)
 
         return Response({"status": "started"})
 
