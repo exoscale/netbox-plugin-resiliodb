@@ -127,7 +127,7 @@ class DeviceResilioListView(generic.ObjectListView):
     template_name = "netbox_resiliodb/device_list.html"
     filterset = filtersets.DeviceResilioFilterSet
     filterset_form = forms.DeviceResilioFilterForm
-    actions = {"bulk_sync": "Sync with ResilioDB"}
+    actions = ()
 
 
 class DeviceBulkSyncView(generic.BulkDeleteView):
@@ -149,7 +149,7 @@ class DeviceBulkSyncView(generic.BulkDeleteView):
 
                 # Enqueue each device individually
                 for device in selected:
-                    ResilioSyncJob.enqueue_once(instance=device)
+                    ResilioSyncJob.enqueue(device_id=device.id)
                 messages.success(request, f"Queued {count} devices for ResilioDB sync")
 
         return redirect(reverse("plugins:netbox_resiliodb:device_list"))
