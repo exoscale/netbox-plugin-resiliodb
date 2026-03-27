@@ -36,9 +36,4 @@ menu_items = (
         link_text="Country Mappings",
         permissions=["netbox_resiliodb.view_sitecountrymapping"],
     ),
-    PluginMenuItem(
-        link="plugins:netbox_resiliodb:poolmapping_list",
-        link_text="Pool Mappings",
-        permissions=["netbox_resiliodb.view_poolmapping"],
-    ),
 )

@@ -147,27 +147,6 @@ class LCAImpactDataSerializer(NetBoxModelSerializer):
         return None
 
 
-class PoolMappingSerializer(NetBoxModelSerializer):
-    device_roles = DeviceRoleSerializer(nested=True, many=True)
-    platform = serializers.SerializerMethodField()
-    url = serializers.HyperlinkedIdentityField(
-        view_name="plugins-api:netbox_resiliodb-api:poolmapping-detail"
-    )
-
-    class Meta:
-        model = models.PoolMapping
-        fields = ("id", "url", "pool_name", "platform", "device_roles")
-
-    def get_platform(self, obj):
-        if obj.platform:
-            return {
-                "id": obj.platform.id,
-                "url": obj.platform.get_absolute_url(),
-                "display": str(obj.platform),
-            }
-        return None
-
-
 class DeviceSyncSerializer(NetBoxModelSerializer):
     device_id = serializers.IntegerField(required=False)
 

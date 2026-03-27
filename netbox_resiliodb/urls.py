@@ -136,34 +136,6 @@ urlpatterns = [
         name="pluginsettings_changelog",
         kwargs={"model": models.PluginSettings},
     ),
-    # Pool Mappings
-    path(
-        "pool-mappings/", views.PoolMappingListView.as_view(), name="poolmapping_list"
-    ),
-    path(
-        "pool-mappings/add/",
-        views.PoolMappingEditView.as_view(),
-        name="poolmapping_add",
-    ),
-    path(
-        "pool-mappings/<int:pk>/", views.PoolMappingView.as_view(), name="poolmapping"
-    ),
-    path(
-        "pool-mappings/<int:pk>/edit/",
-        views.PoolMappingEditView.as_view(),
-        name="poolmapping_edit",
-    ),
-    path(
-        "pool-mappings/<int:pk>/delete/",
-        views.PoolMappingDeleteView.as_view(),
-        name="poolmapping_delete",
-    ),
-    path(
-        "pool-mappings/<int:pk>/changelog/",
-        ObjectChangeLogView.as_view(),
-        name="poolmapping_changelog",
-        kwargs={"model": models.PoolMapping},
-    ),
     # LCA Impact Data
     path(
         "lca-impact-data/",

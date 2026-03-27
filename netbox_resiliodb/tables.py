@@ -7,7 +7,6 @@ from .models import (
     Indicator,
     LCAType,
     PluginSettings,
-    PoolMapping,
     SiteCountryMapping,
 )
 
@@ -72,16 +71,6 @@ class PluginSettingsTable(NetBoxTable):
             "default_usage_period_hours",
             "default_power_watts",
         )
-
-
-class PoolMappingTable(NetBoxTable):
-    pool_name = tables.Column(linkify=True)
-    device_roles = tables.ManyToManyColumn(linkify=True)
-
-    class Meta(NetBoxTable.Meta):
-        model = PoolMapping
-        fields = ("pk", "id", "pool_name", "platform", "device_roles", "actions")
-        default_columns = ("pool_name", "platform", "device_roles")
 
 
 class DeviceResilioTable(NetBoxTable):

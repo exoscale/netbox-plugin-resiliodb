@@ -232,33 +232,6 @@ class LCAImpactIndicatorValue(NetBoxModel):
         )
 
 
-class PoolMapping(NetBoxModel):
-    """
-    Maps pools to platform and device roles for grouping devices.
-    """
-
-    pool_name = models.CharField(max_length=100)
-    platform = models.ForeignKey(
-        to="dcim.Platform",
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-        related_name="pool_mappings",
-    )
-    device_roles = models.ManyToManyField(DeviceRole, blank=True)
-
-    class Meta:
-        ordering = ("pool_name",)
-        verbose_name = "Pool Mapping"
-        verbose_name_plural = "Pool Mappings"
-
-    def __str__(self):
-        return f"{self.pool_name}"
-
-    def get_absolute_url(self):
-        return reverse("plugins:netbox_resiliodb:poolmapping", args=[self.pk])
-
-
 class PluginSettings(NetBoxModel):
     """
     Stores global settings for the plugin.
@@ -336,23 +309,6 @@ def get_lca_impact_status(self):
         return "Missing"
 
 
-def get_pool(self):
-    """
-    Returns the pool name for this device based on platform and role mappings.
-    Returns 'generic' if no matching pool is found.
-    """
-    if not hasattr(self, "_pool_cache"):
-        pool_mappings = PoolMapping.objects.filter(platform=self.platform)
-        for mapping in pool_mappings:
-            if self.role in mapping.device_roles.all():
-                self._pool_cache = mapping.pool_name
-                break
-        else:
-            self._pool_cache = "generic"
-    return self._pool_cache
-
-
 Device.has_lca_params = has_lca_params
 Device.get_lca_impact_status = get_lca_impact_status
-Device.get_pool = get_pool
 DeviceType.has_lca_params = has_lca_params

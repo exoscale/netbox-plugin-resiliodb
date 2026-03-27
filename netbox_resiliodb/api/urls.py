@@ -14,6 +14,5 @@ router.register("plugin-settings", views.PluginSettingsViewSet)
 router.register("device-sync", views.DeviceSyncViewSet, basename="device-sync")
 router.register("lca-impact-data", views.LCAImpactDataViewSet)
 router.register("lca-impact-indicator-values", views.LCAImpactIndicatorValueViewSet)
-router.register("pool-mappings", views.PoolMappingViewSet)
 
 urlpatterns = router.urls
